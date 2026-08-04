@@ -158,6 +158,15 @@ class SecurityTests(unittest.TestCase):
         ]:
             self.assertNotIn(legacy, path.read_text(encoding="utf-8"), str(path))
 
+    def test_publish_toolchain_tracks_generated_xml_and_builds_pdf(self) -> None:
+        publish = (ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
+        zenodo = (ROOT / ".github" / "workflows" / "zenodo-sync.yml").read_text(encoding="utf-8")
+        dockerfile = (ROOT / "tools" / "xsweet" / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("lmodern fonts-dejavu-core", publish)
+        self.assertIn("lmodern fonts-dejavu-core", zenodo)
+        self.assertIn("git status --porcelain -- 'articles/*/article.xml'", publish)
+        self.assertIn("libz-dev libzip-dev", dockerfile)
+
 
 if __name__ == "__main__":
     unittest.main()

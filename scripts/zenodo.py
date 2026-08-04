@@ -149,9 +149,15 @@ def search_records(api_url: str, repository: str, tag: str) -> dict[str, Any] | 
     release_url = f"https://github.com/{repository}/releases/tag/{tag}"
     tree_url = f"https://github.com/{repository}/tree/{tag}"
     queries = [
+        # Zenodo's current InvenioRDM index stores record fields below metadata.
+        f'metadata.related_identifiers.identifier:"{release_url}"',
+        f'metadata.related_identifiers.identifier:"{tree_url}"',
+        # Keep legacy field names for older Zenodo API responses.
         f'related.identifiers.identifier:"{release_url}"',
         f'related_identifiers.identifier:"{release_url}"',
         f'related.identifiers.identifier:"{tree_url}"',
+        # Final full-text fallbacks tolerate schema/index migrations.
+        f'"{release_url}"',
         f'"{repository}" AND "{tag}"',
     ]
     for query in queries:

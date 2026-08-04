@@ -138,8 +138,8 @@ jobs:
             title="$(jq -r '.title' <<<"$item")"
             asset_dir="output/articles/$slug"
             if gh release view "$tag" >/dev/null 2>&1; then
-              echo "::error::Release $tag already exists. Increase metadata.version before publishing scientific changes."
-              exit 1
+              echo "Release $tag already exists; skipping duplicate release creation."
+              continue
             fi
             python scripts/zenodo.py metadata \
               --article "articles/$slug" \

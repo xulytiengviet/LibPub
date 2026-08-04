@@ -1,0 +1,1007 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front><article-meta><title-group><article-title>From Natural Language to Verifiable GeoWorkflows: A Typed LLM-Orchestration Framework for Predictive Geodata Science</article-title></title-group><contrib-group><contrib contrib-type="author" corresp="yes"><name name-style="western"><surname>Ngo-Hoang</surname><given-names>Dai-Long</given-names></name><xref ref-type="aff" rid="aff1"/><email>nhdlong@vnuhcm.edu.vn</email></contrib></contrib-group><aff id="aff1">Vietnam National University Ho Chi Minh City – Ben Tre Campus, Vinh Long, Vietnam</aff><pub-date pub-type="epub"><day>4</day><month>8</month><year>2026</year></pub-date><abstract><p>Natural-language interfaces can lower the expertise barrier to geospatial analysis, but direct prompt-to-code systems remain vulnerable to silent errors in coordinate reference systems, units, temporal alignment, data provenance, topology, and model selection. This paper presents GeoPlan, a verifiable framework that treats a large language model (LLM) as a semantic planner and workflow compiler rather than as the numerical authority for geometry or prediction. GeoPlan translates an analyst's request into GeoPlan-IR, a typed directed acyclic graph that explicitly records spatial entities, coordinate systems, units, temporal extents, data lineage, uncertainty, model assumptions, and acceptance constraints. A spatial knowledge graph grounds domain concepts and data catalogs; static and dynamic verifiers check the plan before and after execution; and sandboxed adapters compile approved plans to PostGIS, Python geospatial libraries, or Google Earth Engine. The paper further specifies GeoNL2Workflow, an expert-annotated benchmark covering vector, raster, network, spatiotemporal, predictive, and streaming Internet-of-Things tasks. Evaluation separates semantic fidelity, plan correctness, executability, result agreement, robustness, safety, and resource cost rather than collapsing them into a single code-generation score. Two reproducible case studies are defined: compound-flood susceptibility under SSP2-4.5 conditions using satellite, climate, and ESP32 sensor streams, and land-use change prediction from multitemporal Earth observation data. The prespecified primary success criterion is at least 85% end-to-end valid workflow generation on held-out tasks relative to expert reference workflows; it is a target, not a reported empirical result. The framework's central contribution is a neurosymbolic contract between language and geocomputation that makes LLM-assisted predictive geodata science inspectable, portable, and suitable for human-governed decision support.</p></abstract><kwd-group><kwd>GeoAI</kwd><kwd>geospatial agents</kwd><kwd>large language models</kwd><kwd>spatial reasoning</kwd><kwd>workflow verification</kwd><kwd>predictive geodata science</kwd><kwd>edge IoT</kwd></kwd-group><permissions><license xlink:href="https://creativecommons.org/licenses/by/4.0/"><license-p>CC-BY-4.0</license-p></license></permissions></article-meta></front><body>
+<sec id="introduction">
+  <title>1 Introduction</title>
+  <p>Geographic information science is moving from descriptive mapping
+  toward predictive geodata science: analysts increasingly combine Earth
+  observation, spatial databases, simulation, machine learning, and live
+  sensor streams to estimate what may happen, where, when, and with what
+  uncertainty. Yet the operational interface to this ecosystem remains
+  fragmented. A seemingly simple question about flood exposure may
+  require data discovery, coordinate transformation, temporal
+  harmonization, hydrological conditioning, feature engineering, model
+  selection, validation, and cartographic communication. Each step
+  introduces domain assumptions that are rarely visible to
+  non-specialists and are easy to mishandle even when generated code
+  executes successfully.</p>
+  <p>LLM-based GIS agents offer a compelling interaction model because
+  they can decompose natural-language requests, retrieve documentation,
+  call tools, and generate code. Early systems such as LLM-Geo, GeoGPT,
+  and GIS Copilot demonstrated that language models can orchestrate
+  common geoprocessing operations [3-5]. More recent multi-agent and
+  benchmark studies show meaningful gains but also a persistent
+  complexity ceiling: success deteriorates as tasks require more tools,
+  heterogeneous data, ambiguous constraints, or predictive reasoning
+  [6-10]. Intrinsic topological reasoning is itself unreliable;
+  experiments with well-known text geometries report only moderate
+  accuracy and emphasize that spatial databases remain more competent at
+  exact computation [11]. These findings expose a central design mistake
+  in many prototypes: an executable script is treated as evidence of a
+  correct spatial analysis.</p>
+  <p>This paper addresses the gap between linguistic plausibility and
+  geocomputational validity. We propose GeoPlan, a framework in which
+  the LLM performs semantic interpretation, constrained planning, and
+  explanation, while deterministic spatial engines perform geometry,
+  statistics, simulation, and prediction. The boundary between these
+  roles is encoded in a typed intermediate representation called
+  GeoPlan-IR. Instead of asking a model to emit unrestricted Python, the
+  system first produces a machine-checkable workflow graph containing
+  explicit data contracts and spatial invariants. This design makes
+  errors such as buffering longitude-latitude coordinates in metres,
+  joining observations from incompatible timestamps, or fitting a
+  predictive model with spatial leakage detectable before execution.</p>
+  <p><bold>Research questions.</bold> RQ1 asks whether ontology-grounded
+  GeoPlan-IR improves semantic and structural workflow correctness
+  compared with direct prompt-to-code and unconstrained tool calling.
+  RQ2 asks how much static and dynamic verification reduces silent
+  spatial errors while preserving task completion. RQ3 asks whether the
+  framework generalizes across geography, data modality, and application
+  domain, including live edge-IoT observations.</p>
+  <p>The paper makes four contributions:</p>
+  <list list-type="order">
+    <list-item>
+      <p>A typed, model-agnostic intermediate representation for
+      natural-language-to-geospatial workflows, including coordinate
+      systems, units, time, scale, uncertainty, provenance, and
+      acceptance constraints.</p>
+    </list-item>
+    <list-item>
+      <p>A verification architecture that combines ontology grounding,
+      static plan checks, sandboxed execution, result invariants,
+      bounded repair, and human escalation.</p>
+    </list-item>
+    <list-item>
+      <p>A benchmark and evaluation protocol that distinguishes semantic
+      fidelity, graph correctness, functional execution, output
+      equivalence, robustness, safety, and computational cost.</p>
+    </list-item>
+    <list-item>
+      <p>Two end-to-end predictive case-study specifications connecting
+      cloud geocomputation with satellite products and georeferenced
+      ESP32 sensor streams.</p>
+    </list-item>
+  </list>
+</sec>
+<sec id="background-and-related-work">
+  <title>2 Background and Related Work</title>
+  <sec id="from-gis-automation-to-agentic-geocomputation">
+    <title>2.1 From GIS automation to agentic geocomputation</title>
+    <p>Autonomous GIS has been framed as a progression toward systems
+    that can generate, organize, verify, execute, and improve geospatial
+    workflows [3]. LLM-Geo represents workflows as solution graphs and
+    generates executable programs; GeoGPT similarly combines
+    natural-language understanding with a tool registry [4]. GIS Copilot
+    integrates an informed agent into QGIS and evaluates more than one
+    hundred tasks at several complexity levels [5]. These systems
+    established feasibility, but their primary abstraction remains code
+    or a loosely typed tool sequence. Consequently, the burden of
+    validating spatial semantics often remains outside the agent.</p>
+    <p>Mansourian and Oucheikh introduced a multi-agent QGIS framework
+    with retrieval, fine-tuning, and specialized roles [6]. The study
+    reported high execution success on short workflows but reduced
+    effectiveness as complexity increased. GISclaw extends coverage
+    across vector, raster, and tabular analysis and highlights an
+    important systems result: additional agent layers do not
+    automatically improve strong models and may introduce coordination
+    overhead [10]. GeoPlan therefore avoids assuming that more agents
+    imply better reasoning. It uses a small number of explicit compiler
+    and verifier roles whose outputs are typed, observable, and
+    independently testable.</p>
+  </sec>
+  <sec id="benchmarks-and-the-functional-equivalence-problem">
+    <title>2.2 Benchmarks and the functional-equivalence problem</title>
+    <p>GeoAnalystBench contains 50 expert-validated Python tasks and
+    calls for rigorous evaluation before claims of full GIS automation
+    [7]. Bench4GeoCode contributes 100 progressively difficult tasks,
+    including unattainable and ambiguous queries, and separates
+    functional correctness from code quality [8]. These benchmarks are
+    important, yet predictive geodata science adds requirements that
+    code execution alone cannot capture: the same analysis can be
+    implemented by different valid workflows; conversely, two scripts
+    may run and produce maps while embodying incompatible coordinate
+    systems, temporal definitions, leakage controls, or uncertainty
+    assumptions. GeoPlan evaluates equivalence at plan, execution, and
+    result levels and records acceptable alternative workflows in the
+    gold standard.</p>
+  </sec>
+  <sec id="spatial-semantics-standards-and-exact-computation">
+    <title>2.3 Spatial semantics, standards, and exact
+    computation</title>
+    <p>GeoSPARQL provides vocabularies and query functions for
+    representing geospatial entities, geometries, and topological
+    relations in RDF [12, 13]. The SpatioTemporal Asset Catalog
+    specification supplies a common structure for describing and
+    discovering Earth-observation assets [14]. W3C PROV-O and SHACL
+    support data lineage and graph validation [15, 16]. These standards
+    enable a neurosymbolic architecture: language is grounded to formal
+    concepts, constraints are validated symbolically, and exact geometry
+    is delegated to databases and geospatial libraries. The framework
+    consequently interprets an LLM as a spatial reasoning orchestrator,
+    not as a replacement for DE-9IM predicates, raster algebra,
+    hydrodynamic models, or calibrated statistical learners.</p>
+  </sec>
+  <sec id="research-gap-and-novelty">
+    <title>2.4 Research gap and novelty</title>
+    <p>The closest published title to the initial framing of this study
+    is the 2026 multi-agent work in [6]. GeoPlan is differentiated
+    technically and rhetorically: it does not claim novelty merely from
+    bridging language and GIS. Its contribution is the typed contract
+    that separates semantic planning from numerical execution, plus
+    verification criteria tailored to predictive and streaming
+    geodata.</p>
+    <p>Table 1. Positioning of GeoPlan relative to representative
+    LLM-GIS approaches.</p>
+    <table-wrap>
+      <table>
+        <colgroup>
+          <col width="16%"/>
+          <col width="18%"/>
+          <col width="18%"/>
+          <col width="21%"/>
+          <col width="26%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><bold>Approach</bold></th>
+            <th><bold>Primary output</bold></th>
+            <th><bold>Verification</bold></th>
+            <th><bold>Predictive/streaming scope</bold></th>
+            <th><bold>Remaining gap</bold></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LLM-Geo / GeoGPT</td>
+            <td>Code or solution graph</td>
+            <td>Limited runtime feedback</td>
+            <td>Demonstration cases</td>
+            <td>Weakly typed spatial contracts</td>
+          </tr>
+          <tr>
+            <td>GIS Copilot</td>
+            <td>QGIS workflow and code</td>
+            <td>Tool-informed execution</td>
+            <td>Mainly desktop GIS</td>
+            <td>Limited provenance and uncertainty</td>
+          </tr>
+          <tr>
+            <td>Multi-agent QGIS</td>
+            <td>Collaborative tool plan</td>
+            <td>Self-refinement</td>
+            <td>Short to medium workflows</td>
+            <td>Complexity and coordination ceiling</td>
+          </tr>
+          <tr>
+            <td>GeoAnalystBench / Bench4GeoCode</td>
+            <td>Reference code and task scores</td>
+            <td>Functional and quality checks</td>
+            <td>Mostly static benchmark data</td>
+            <td>No unified predictive contract</td>
+          </tr>
+          <tr>
+            <td>GeoPlan (proposed)</td>
+            <td>Typed GeoPlan-IR plus compiled workflow</td>
+            <td>Static, dynamic, result and policy checks</td>
+            <td>Raster, vector, prediction and edge-IoT streams</td>
+            <td>Requires empirical validation</td>
+          </tr>
+        </tbody>
+      </table>
+    </table-wrap>
+  </sec>
+</sec>
+<sec id="problem-formulation">
+  <title>3 Problem Formulation</title>
+  <p>Let a user request be q, contextual information be C, available
+  datasets and catalogs be D, and authorized execution environments be
+  E. The system must produce a workflow W = (V, A), where V is a set of
+  typed operations and A is a set of data-dependency edges. A workflow
+  is acceptable only if it is semantically faithful to q, well typed
+  with respect to D, executable within E, and demonstrably consistent
+  with output constraints. The objective is not exact textual or code
+  match. It is constrained functional equivalence: multiple plans may be
+  valid if they satisfy the same intent, preconditions, invariants, and
+  tolerance-bounded outputs.</p>
+  <p>We define a workflow utility U(W) = alpha S_sem + beta S_plan +
+  gamma S_out - lambda R - mu C, where S_sem is semantic fidelity,
+  S_plan is typed graph correctness, S_out is result agreement, R is
+  safety and epistemic risk, and C is normalized computational cost. The
+  coefficients are fixed before evaluation and sensitivity analysis
+  reports whether conclusions depend on a particular weighting. Primary
+  claims are based on the component measures rather than U(W),
+  preventing a high score in one dimension from concealing a critical
+  failure in another.</p>
+  <p><bold>Spatial correctness.</bold> A plan is spatially correct when
+  geometry types, coordinate reference systems, units, spatial scale,
+  topology, temporal support, resolution, and boundary semantics are
+  explicitly defined or safely inferred and then validated. Terms such
+  as near, upstream, coastal corridor, recent, or high risk are treated
+  as underspecified until resolved by policy, domain context, or user
+  clarification.</p>
+  <p><bold>Predictive correctness.</bold> A predictive plan additionally
+  specifies target variables, forecasting horizon, feature availability
+  at prediction time, spatial and temporal cross-validation, leakage
+  controls, calibration, uncertainty outputs, and a reproducible
+  model-selection protocol. The LLM may recommend a model family, but
+  only models registered with machine-readable preconditions can be
+  executed automatically.</p>
+</sec>
+<sec id="geoplan-framework">
+  <title>4 GeoPlan Framework</title>
+  <graphic mimetype="image" mime-subtype="png" xlink:href="/home/runner/work/LibPub/LibPub/.libpub/work/geoplan-verifiable-geoworkflows-iccies2027/media/media/image1.png" xlink:title="GeoPlan architecture">
+    <alt-text>A seven-stage flow converts a natural-language spatial
+    task into a grounded typed plan, verifies it, executes it in
+    deterministic geospatial engines, checks outputs, and returns a
+    decision-ready result with provenance and human controls.</alt-text>
+  </graphic>
+  <p>Fig. 1. GeoPlan architecture. The LLM plans and explains;
+  deterministic engines remain the authority for spatial computation and
+  prediction.</p>
+  <sec id="design-principles">
+    <title>4.1 Design principles</title>
+    <p>GeoPlan follows five principles. First, semantic planning is
+    separated from execution. Second, every automatic inference that can
+    change a result is made explicit in GeoPlan-IR. Third, data and
+    tools are discovered through registries rather than recalled from
+    model parameters. Fourth, verification is layered: cheap static
+    checks precede costly execution, and result checks precede release.
+    Fifth, the system escalates ambiguity and high-impact decisions to a
+    human instead of forcing completion. This final principle is
+    essential for trustworthy automation because a correct response to
+    an ill-posed request may be a clarification question or a documented
+    refusal.</p>
+  </sec>
+  <sec id="geoplan-ir-a-typed-intermediate-representation">
+    <title>4.2 GeoPlan-IR: a typed intermediate representation</title>
+    <p>GeoPlan-IR is serialized as JSON or RDF but is conceptually a
+    typed DAG. Each node declares its operation, inputs, outputs,
+    parameter types, spatial and temporal contracts, preconditions,
+    postconditions, and evidence. The graph is model agnostic and
+    platform neutral: the same plan can be compiled to SQL/PostGIS, a
+    Python stack, or Earth Engine when equivalent operators are
+    available.</p>
+    <p>Table 2. Core GeoPlan-IR fields and the failures they are
+    designed to prevent.</p>
+    <table-wrap>
+      <table>
+        <colgroup>
+          <col width="19%"/>
+          <col width="44%"/>
+          <col width="37%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><bold>Field group</bold></th>
+            <th><bold>Required content</bold></th>
+            <th><bold>Failure prevented</bold></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Intent</td>
+            <td>task type, decision purpose, target, horizon</td>
+            <td>Fluent but irrelevant analysis</td>
+          </tr>
+          <tr>
+            <td>Spatial contract</td>
+            <td>geometry type, CRS, extent, resolution, scale,
+            units</td>
+            <td>Invalid distance, area, overlay, or resampling</td>
+          </tr>
+          <tr>
+            <td>Temporal contract</td>
+            <td>event time, interval, timezone, aggregation, lag</td>
+            <td>Misaligned observations and look-ahead leakage</td>
+          </tr>
+          <tr>
+            <td>Data contract</td>
+            <td>schema, source, licence, quality, lineage, access</td>
+            <td>Hallucinated or unauthorized datasets</td>
+          </tr>
+          <tr>
+            <td>Operation node</td>
+            <td>typed inputs/outputs, parameters,
+            pre/postconditions</td>
+            <td>Incorrect tool order or incompatible data types</td>
+          </tr>
+          <tr>
+            <td>Predictive contract</td>
+            <td>target, features, split, model, calibration,
+            uncertainty</td>
+            <td>Overfitting, leakage, and uncalibrated risk</td>
+          </tr>
+          <tr>
+            <td>Acceptance contract</td>
+            <td>tests, tolerances, risk tier, human approval</td>
+            <td>Release of plausible but invalid outputs</td>
+          </tr>
+        </tbody>
+      </table>
+    </table-wrap>
+    <p>A minimal buffer node, for example, cannot contain only a
+    distance value. It must identify an input geometry, output geometry,
+    projected CRS or geodesic method, unit, cap and join policy,
+    invalid-geometry handling, and postconditions such as non-empty
+    output and preserved feature identifiers. This explicitness converts
+    many GIS best practices into compile-time checks.</p>
+  </sec>
+  <sec id="semantic-grounding-and-data-discovery">
+    <title>4.3 Semantic grounding and data discovery</title>
+    <p>The grounding layer maps place names, domain phrases, and vague
+    relations to canonical entities and predicates. A spatial knowledge
+    graph combines GeoSPARQL relations with domain ontologies for
+    hydrology, land cover, urban zoning, hazards, and sensors. It also
+    links concepts to tool signatures and catalog assets. Retrieval is
+    constrained by geographic coverage, time span, resolution,
+    licensing, update frequency, and authorization. STAC records
+    identify raster assets; database catalogs expose vector and tabular
+    schemas; sensor registries expose station coordinates, units,
+    calibration dates, and quality flags.</p>
+    <p>Ambiguity is quantified rather than hidden. If coastal corridor
+    could refer to an administrative buffer, an elevation-defined
+    coastal zone, or a distance from shoreline, the system returns
+    candidate interpretations with consequences for data and output. An
+    automatic choice is permitted only when an organization-approved
+    default exists and its use is recorded in the plan.</p>
+  </sec>
+  <sec id="planning-compilation-and-bounded-repair">
+    <title>4.4 Planning, compilation, and bounded repair</title>
+    <p>The planner decomposes q into data acquisition, preprocessing,
+    analysis, prediction, validation, and presentation nodes. Retrieval
+    supplies only tool documentation and examples compatible with the
+    current execution environment. The compiler then resolves abstract
+    operators to concrete implementations. For instance, spatial_join
+    may compile to ST_Intersects in PostGIS, GeoPandas.sjoin in Python,
+    or an Earth Engine join. Platform-specific code is generated from
+    typed operator templates, reducing the unconstrained code
+    surface.</p>
+    <p>When a verifier rejects a plan or execution fails, the system may
+    enter a bounded repair loop. The error, relevant schema, and failed
+    invariant are returned to the planner; unrelated context and raw
+    secrets are withheld. Repair is limited by attempt count, cost
+    budget, and risk tier. Repeated failure, missing data, or an
+    ambiguous high-impact assumption triggers human escalation. This
+    differs from open-ended self-debugging because the permissible state
+    transitions are explicit and auditable.</p>
+  </sec>
+  <sec id="static-execution-and-result-verification">
+    <title>4.5 Static, execution, and result verification</title>
+    <p>Static verification uses JSON Schema or SHACL shapes, operator
+    signatures, and domain rules. It checks DAG acyclicity, type
+    compatibility, CRS and unit consistency, temporal ordering, required
+    metadata, tool authorization, and model preconditions. Predictive
+    rules flag random train-test splits for strongly spatial data,
+    features unavailable at forecast time, fitting preprocessing outside
+    cross-validation, and missing calibration or uncertainty
+    outputs.</p>
+    <p>Execution occurs in a sandbox with read-only inputs, explicit
+    output locations, resource quotas, network allowlists, and
+    parameterized SQL. Dynamic checks inspect geometry validity, row and
+    pixel counts, missingness, spatial bounds, temporal coverage, and
+    distribution shifts. Result verification compares outputs with
+    reference tests or invariant-based expectations. Examples include
+    conservation of total area within tolerance after reprojection,
+    monotonicity of cumulative inundation area with increasing water
+    level, and agreement between independently implemented spatial
+    predicates.</p>
+    <p>Every released artifact carries a provenance bundle: normalized
+    request, GeoPlan-IR, model and tool versions, dataset identifiers
+    and checksums, generated code, runtime log, verification results,
+    uncertainty summary, and human interventions. This bundle supports
+    reproduction, audit, and post-hoc comparison when models or datasets
+    change.</p>
+  </sec>
+</sec>
+<sec id="geonl2workflow-benchmark">
+  <title>5 GeoNL2Workflow Benchmark</title>
+  <sec id="dataset-construction">
+    <title>5.1 Dataset construction</title>
+    <p>GeoNL2Workflow is designed as an expert-authored benchmark rather
+    than a collection of automatically paraphrased coding prompts.
+    Candidate tasks are elicited from GIS analysts, remote-sensing
+    specialists, hydrologists, planners, and IoT engineers. Each task is
+    independently formalized by two annotators and adjudicated by a
+    third. The released unit contains the natural-language request,
+    ambiguity labels, required clarifications, admissible data sources,
+    one or more gold GeoPlan-IR graphs, executable reference
+    implementations, test fixtures, expected invariants, and risk
+    classification.</p>
+    <p>The planned corpus contains 1,200 tasks: 720 core tasks, 240
+    robustness tasks, 120 predictive tasks, and 120 streaming or
+    edge-IoT tasks. These counts are design targets and must be replaced
+    by achieved counts in the empirical submission. Tasks are stratified
+    by operation count and dependency depth. Gold alternatives capture
+    scientifically equivalent algorithms within declared tolerances.</p>
+    <p>Table 3. Planned benchmark taxonomy.</p>
+    <table-wrap>
+      <table>
+        <colgroup>
+          <col width="21%"/>
+          <col width="43%"/>
+          <col width="36%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><bold>Task family</bold></th>
+            <th><bold>Representative operations</bold></th>
+            <th><bold>Primary failure mode</bold></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Vector and topology</td>
+            <td>buffer, overlay, spatial join, dissolve, network</td>
+            <td>CRS, units, invalid geometry, predicate confusion</td>
+          </tr>
+          <tr>
+            <td>Raster and EO</td>
+            <td>mask, composite, index, resample, zonal statistics</td>
+            <td>scale, projection, cloud masking, temporal mismatch</td>
+          </tr>
+          <tr>
+            <td>Spatiotemporal</td>
+            <td>trajectory, lag, event window, change detection</td>
+            <td>timezone, interval semantics, leakage</td>
+          </tr>
+          <tr>
+            <td>Predictive GeoAI</td>
+            <td>features, split, train, calibrate, forecast,
+            explain</td>
+            <td>target leakage, biased validation, uncertainty</td>
+          </tr>
+          <tr>
+            <td>Streaming edge-IoT</td>
+            <td>MQTT ingest, calibration, quality control, spatial
+            fusion</td>
+            <td>clock drift, units, sensor relocation, dropout</td>
+          </tr>
+          <tr>
+            <td>Robustness</td>
+            <td>ambiguity, impossible request, missing data, policy
+            conflict</td>
+            <td>unsafe guessing or fabricated completion</td>
+          </tr>
+        </tbody>
+      </table>
+    </table-wrap>
+  </sec>
+  <sec id="leakage-resistant-splits-and-perturbations">
+    <title>5.2 Leakage-resistant splits and perturbations</title>
+    <p>Random prompt splits are insufficient because templates, place
+    names, and code idioms can leak across partitions. GeoNL2Workflow
+    uses four held-out regimes: geographic holdout, in which regions in
+    the test set are absent from training; operator-composition holdout,
+    in which known operations occur in novel combinations; temporal
+    holdout, in which later data versions are used only for testing; and
+    domain holdout, in which an application such as coastal flooding is
+    evaluated after training on other hazards. Robustness variants
+    perturb CRS metadata, units, schema names, incomplete temporal
+    ranges, unavailable data, and conflicting instructions.</p>
+    <p>Ambiguous tasks are scored correct only if the system asks an
+    information-bearing clarification or selects a documented default.
+    Trap tasks are scored correct when the system identifies that the
+    request cannot be satisfied with the authorized data and tools.
+    These cases prevent completion rate from becoming a proxy for
+    quality.</p>
+  </sec>
+</sec>
+<sec id="experimental-protocol">
+  <title>6 Experimental Protocol</title>
+  <sec id="systems-and-ablations">
+    <title>6.1 Systems and ablations</title>
+    <p>All model identifiers, weights, inference parameters, prompts,
+    retrieval indexes, and tool versions will be frozen before the final
+    evaluation. At least two open-weight model families and one strong
+    hosted model will be tested under identical tool permissions. The
+    following systems isolate the contribution of each architectural
+    component.</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>B0 - direct natural-language-to-code generation without
+        retrieval or tools.</p>
+      </list-item>
+      <list-item>
+        <p>B1 - retrieval-augmented code generation using GIS
+        documentation.</p>
+      </list-item>
+      <list-item>
+        <p>B2 - unconstrained tool-calling agent with runtime
+        feedback.</p>
+      </list-item>
+      <list-item>
+        <p>B3 - GeoPlan-IR without the spatial knowledge graph.</p>
+      </list-item>
+      <list-item>
+        <p>B4 - GeoPlan-IR plus knowledge-graph grounding but without
+        verification.</p>
+      </list-item>
+      <list-item>
+        <p>P - full GeoPlan with grounding, static checks, sandbox
+        execution, result verification, and bounded repair.</p>
+      </list-item>
+    </list>
+    <p>Ablations remove CRS checks, temporal checks, provenance,
+    predictive leakage rules, or result invariants one at a time. This
+    design tests whether the framework improves scientific validity
+    rather than merely adding orchestration overhead. Each stochastic
+    configuration is repeated with prespecified seeds; tasks are
+    executed in fresh containers to prevent state leakage.</p>
+  </sec>
+  <sec id="metrics">
+    <title>6.2 Metrics</title>
+    <p>Table 4. Evaluation dimensions and operational definitions.</p>
+    <table-wrap>
+      <table>
+        <colgroup>
+          <col width="17%"/>
+          <col width="24%"/>
+          <col width="59%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><bold>Dimension</bold></th>
+            <th><bold>Metric</bold></th>
+            <th><bold>Operational definition</bold></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Semantic</td>
+            <td>Intent-slot F1</td>
+            <td>Match of target, geography, time, constraint, output and
+            decision purpose</td>
+          </tr>
+          <tr>
+            <td>Plan</td>
+            <td>Node/edge/parameter F1</td>
+            <td>Graph match over acceptable gold workflows after
+            canonicalization</td>
+          </tr>
+          <tr>
+            <td>Typing</td>
+            <td>Contract validity rate</td>
+            <td>Plans passing CRS, unit, time, schema and model
+            preconditions</td>
+          </tr>
+          <tr>
+            <td>Execution</td>
+            <td>Clean-run success</td>
+            <td>Completion in a fresh sandbox without manual code
+            repair</td>
+          </tr>
+          <tr>
+            <td>Result</td>
+            <td>Spatial result agreement</td>
+            <td>Geometry/raster/statistical equivalence within
+            task-specific tolerance</td>
+          </tr>
+          <tr>
+            <td>Robustness</td>
+            <td>Appropriate response rate</td>
+            <td>Clarify, abstain or recover under ambiguity, traps and
+            perturbations</td>
+          </tr>
+          <tr>
+            <td>Safety</td>
+            <td>Unsafe execution rate</td>
+            <td>Unauthorized data access, destructive command or
+            unbounded resource request</td>
+          </tr>
+          <tr>
+            <td>Efficiency</td>
+            <td>Latency, tokens, CPU/GPU-hours</td>
+            <td>Median and tail resource consumption per valid task</td>
+          </tr>
+        </tbody>
+      </table>
+    </table-wrap>
+    <p>The primary endpoint is end-to-end valid workflow generation: a
+    task counts as successful only when semantic fidelity, contract
+    validity, clean execution, and result agreement all pass. The
+    prespecified target is at least 0.85 on held-out tasks with a
+    two-sided 95% Wilson confidence interval. Secondary endpoints
+    include each component metric, calibration error for predictive
+    outputs, human correction time, and cost per valid task. The unsafe
+    execution target is below 0.05, but any high-severity event is
+    reported separately and cannot be averaged away.</p>
+  </sec>
+  <sec id="statistical-analysis-and-human-evaluation">
+    <title>6.3 Statistical analysis and human evaluation</title>
+    <p>Paired system comparisons use task-level McNemar tests for binary
+    success and paired bootstrap confidence intervals for continuous
+    scores. Holm correction controls family-wise error across planned
+    comparisons. Mixed-effects logistic regression estimates the effects
+    of architecture, model family, task depth, modality, and holdout
+    regime while treating task as a random effect. Human experts
+    evaluate a stratified blind sample for semantic adequacy, scientific
+    defensibility, trace usefulness, and correction effort. Inter-rater
+    agreement is reported with Krippendorff's alpha or an appropriate
+    weighted coefficient.</p>
+    <p>LLM-as-judge ratings, if used, are secondary and calibrated
+    against experts; they never replace execution tests or spatial
+    result comparison. Error analysis assigns failures to
+    interpretation, data discovery, planning, parameterization, code,
+    execution environment, verification, or explanation. Reporting the
+    distribution of failure types is necessary to distinguish model
+    limits from infrastructure defects.</p>
+  </sec>
+</sec>
+<sec id="predictive-case-studies">
+  <title>7 Predictive Case Studies</title>
+  <sec id="compound-flood-susceptibility-under-ssp2-4.5">
+    <title>7.1 Compound-flood susceptibility under SSP2-4.5</title>
+    <p>The first case study begins with the request: 'Identify coastal
+    urban corridors with high compound-flood susceptibility in 2050
+    under SSP2-4.5, explain the dominant drivers, and produce an
+    uncertainty-aware priority map.' The framework must clarify the
+    study boundary, forecast window, definition of corridor, acceptable
+    resolution, and decision use. Candidate data include Sentinel-1
+    flood observations, Sentinel-2 or Landsat land cover, a digital
+    elevation model, drainage and river networks, rainfall and
+    reanalysis variables, tide or water-level records, urban exposure
+    layers, and downscaled ScenarioMIP variables [20-23].</p>
+    <p>A network of ESP32 edge nodes can contribute georeferenced water
+    level, rainfall, soil moisture, and local pressure. Each message
+    includes sensor identifier, coordinates or station version, event
+    timestamp, unit, calibration metadata, sequence number, and quality
+    flags. Edge preprocessing performs range checks, timestamp
+    normalization, simple filtering, and store-and-forward delivery.
+    GeoPlan does not assume that sensor streams are ground truth: it
+    creates explicit quality-control and spatial-fusion nodes and
+    preserves raw-to-derived lineage.</p>
+    <p>The gold plan uses spatially blocked and temporally forward
+    validation. Candidate predictive models may include gradient-boosted
+    trees and spatiotemporal neural networks, but selection is based on
+    a registered protocol rather than LLM preference. Evaluation reports
+    discrimination, calibration, spatial transfer, uncertainty coverage,
+    and agreement of priority zones with an expert pipeline. Physical
+    plausibility checks require susceptibility to respond consistently
+    to water-level and rainfall perturbations within the model's stated
+    domain.</p>
+  </sec>
+  <sec id="land-use-change-prediction">
+    <title>7.2 Land-use change prediction</title>
+    <p>The second case study asks the system to predict land-use
+    transitions and identify development pressure near transport
+    corridors while respecting protected areas. Multitemporal Sentinel-2
+    or Landsat composites, existing land-cover products, road networks,
+    planning zones, terrain, and settlement indicators are discovered
+    through catalog constraints. The plan must distinguish land cover
+    from land use, define the transition interval, harmonize legends,
+    mask clouds, specify spatial resolution, and prevent the use of
+    post-outcome covariates.</p>
+    <p>Reference workflows include a transparent baseline and a stronger
+    predictive model evaluated with geographic holdouts. Result
+    agreement is measured for transition probabilities, class-specific
+    area, hotspot overlap, and ranking of pressure zones. Because a
+    policy map can influence real decisions, GeoPlan must expose
+    protected-area exclusions, uncertain classifications, and the
+    sensitivity of results to alternative development assumptions.</p>
+    <p>Table 5. Case-study outputs and verification emphasis.</p>
+    <table-wrap>
+      <table>
+        <colgroup>
+          <col width="20%"/>
+          <col width="39%"/>
+          <col width="41%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><bold>Case</bold></th>
+            <th><bold>Required outputs</bold></th>
+            <th><bold>Critical verification</bold></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Compound flooding</td>
+            <td>susceptibility surface, drivers, uncertainty, priority
+            corridors</td>
+            <td>time/CRS alignment, sensor QC, leakage, calibration,
+            physical plausibility</td>
+          </tr>
+          <tr>
+            <td>Land-use change</td>
+            <td>transition probabilities, hotspots, scenario map,
+            explanations</td>
+            <td>legend harmonization, geographic holdout, protected-area
+            policy, uncertainty</td>
+          </tr>
+        </tbody>
+      </table>
+    </table-wrap>
+  </sec>
+</sec>
+<sec id="discussion">
+  <title>8 Discussion</title>
+  <sec id="why-a-typed-compiler-is-more-defensible-than-prompt-to-code">
+    <title>8.1 Why a typed compiler is more defensible than
+    prompt-to-code</title>
+    <p>The scientific value of GeoPlan lies less in generating code than
+    in making assumptions inspectable. Natural language is deliberately
+    tolerant of vagueness, while spatial computation is not. A typed
+    intermediate representation provides a negotiation layer between the
+    two: it preserves the accessibility of conversational interaction
+    but requires machine-checkable commitments before an operation
+    becomes executable. This approach also reduces dependence on a
+    particular model or GIS platform. New LLMs can be compared on plan
+    generation, while new executors can be certified against the same
+    operator contracts.</p>
+    <p>The framework also reframes spatial reasoning. LLMs are useful
+    for mapping goals to concepts, decomposing tasks, recognizing
+    missing information, retrieving procedures, and explaining outcomes.
+    Exact geometry, raster algebra, optimization, and statistical
+    estimation remain the responsibility of tested computational
+    engines. This division of labor is consistent with evidence that LLM
+    topological reasoning is imperfect [11] and avoids a category error
+    in which linguistic confidence is mistaken for numerical
+    validity.</p>
+  </sec>
+  <sec id="human-centered-automation-and-trust">
+    <title>8.2 Human-centered automation and trust</title>
+    <p>Democratization should not mean removing experts from
+    consequential decisions. GeoPlan supports graded autonomy. Low-risk
+    exploratory tasks may execute automatically after all checks pass.
+    Medium-risk tasks require approval of assumptions and datasets.
+    High-risk outputs, such as public flood warnings or regulatory
+    zoning recommendations, require expert review of the plan,
+    uncertainty, and provenance. Trust is therefore attached to evidence
+    and control points, not to anthropomorphic confidence.</p>
+    <p>Natural-language accessibility can broaden interdisciplinary
+    participation, particularly when hydrologists, planners, local
+    authorities, and sensor engineers need to collaborate. However,
+    accessible interfaces may also conceal data gaps and uneven
+    geographic representation. The benchmark therefore includes
+    low-resource geographies, incomplete metadata, multilingual place
+    references, and infrastructure constraints. Performance must be
+    disaggregated by region and task type rather than reported as a
+    single global average.</p>
+  </sec>
+  <sec id="reproducibility-security-and-sustainability">
+    <title>8.3 Reproducibility, security, and sustainability</title>
+    <p>Reproducibility requires more than publishing prompts. The
+    complete execution bundle must identify data versions, spatial
+    extents, model artifacts, library versions, random seeds, and
+    verification outcomes. Security requires least-privilege execution,
+    credential isolation, parameterized database access, package
+    allowlists, and protection against prompt injection embedded in
+    metadata or documents. Sustainability is measured through cost and
+    energy proxies so that marginal accuracy gains can be assessed
+    against computational expense. Open-weight models and local
+    execution can reduce dependence on external services, but they do
+    not remove the need for versioning or governance.</p>
+  </sec>
+</sec>
+<sec id="limitations-and-threats-to-validity">
+  <title>9 Limitations and Threats to Validity</title>
+  <p>This manuscript specifies a framework and evaluation protocol; it
+  does not report completed experiments. The 85% threshold is a
+  prespecified target and must not be cited as achieved. A mature
+  full-paper claim requires the benchmark release, executable prototype,
+  baselines, ablations, confidence intervals, and reproducibility
+  artifacts. Until those elements exist, the work is best classified as
+  a framework, methods, or work-in-progress contribution.</p>
+  <p>Construct validity is threatened by incomplete gold workflows and
+  legitimate analytical alternatives. We mitigate this through multiple
+  gold graphs, invariant-based result tests, and expert adjudication.
+  External validity is limited if tasks, languages, or regions are
+  narrow; geographic and domain holdouts address but cannot eliminate
+  this concern. Internal validity may be affected by model updates,
+  stochastic inference, tool-version changes, and contaminated
+  benchmarks. Frozen artifacts, repeated trials, and temporal splits are
+  therefore mandatory.</p>
+  <p>Knowledge graphs can encode outdated or contested categories, and
+  formal validation can create false assurance when rules are
+  incomplete. The system must record ontology and rule versions and
+  allow domain experts to override them with justification. Predictive
+  case studies also face non-stationarity under climate and land-use
+  change. Scenario outputs are conditional estimates, not forecasts with
+  guaranteed realization, and their uncertainty must be communicated
+  accordingly.</p>
+</sec>
+<sec id="conclusion">
+  <title>10 Conclusion</title>
+  <p>GeoPlan bridges natural-language inquiry and predictive
+  geocomputation through a typed, verifiable contract. Its central
+  premise is deliberately conservative: an LLM should translate intent,
+  organize evidence, and compile a workflow, but exact spatial
+  computation and predictive estimation should remain with
+  deterministic, testable engines. GeoPlan-IR exposes coordinate
+  systems, units, time, scale, data lineage, model assumptions,
+  uncertainty, and acceptance constraints before execution. Layered
+  verification and human escalation convert these declarations into
+  enforceable controls.</p>
+  <p>The proposed benchmark and case studies create a path from an
+  attractive concept to falsifiable evidence. The next step is
+  implementation and preregistered evaluation against direct code
+  generation, retrieval-augmented generation, and unconstrained agents.
+  A successful result would not be a chatbot that produces convincing
+  maps; it would be a system that consistently produces reproducible
+  workflows, detects when it should not act, and supplies experts with
+  the evidence needed to approve or reject its conclusions.</p>
+</sec>
+<sec id="declarations">
+  <title>Declarations</title>
+  <p><bold>Data and code availability.</bold> The benchmark, schemas,
+  reference workflows, and prototype are planned for public release with
+  persistent identifiers after empirical validation. No new empirical
+  dataset is claimed in this framework manuscript.</p>
+  <p><bold>Competing interests.</bold> The author declares no competing
+  interests.</p>
+  <p><bold>Use of generative AI.</bold> Generative AI assisted language
+  editing and document preparation. The author remains responsible for
+  the research design, factual verification, experiments, code, data,
+  and final manuscript.</p>
+</sec>
+<sec id="references">
+  <title>References</title>
+  <list list-type="order">
+    <list-item>
+      <label>5.</label>
+      <p>Goodchild, M.F.: Geographical information science.
+      International Journal of Geographical Information Systems 6(1),
+      31-45 (1992). https://doi.org/10.1080/02693799208901893</p>
+    </list-item>
+    <list-item>
+      <label>6.</label>
+      <p>Miller, H.J., Goodchild, M.F.: Data-driven geography.
+      GeoJournal 80, 449-461 (2015).
+      https://doi.org/10.1007/s10708-014-9602-6</p>
+    </list-item>
+    <list-item>
+      <label>7.</label>
+      <p>Li, Z., Ning, H.: Autonomous GIS: the next-generation
+      AI-powered GIS. International Journal of Digital Earth 16(2),
+      4668-4686 (2023).
+      https://doi.org/10.1080/17538947.2023.2278895</p>
+    </list-item>
+    <list-item>
+      <label>8.</label>
+      <p>Zhang, Y., Wei, C., Wu, S., He, Z., Yu, W.: GeoGPT:
+      Understanding and processing geospatial tasks through an
+      autonomous GPT. arXiv:2307.07930 (2023).</p>
+    </list-item>
+    <list-item>
+      <label>9.</label>
+      <p>Akinboyewa, T., Li, Z., Ning, H., Lessani, M.N.: GIS Copilot:
+      Towards an autonomous GIS agent for spatial analysis.
+      arXiv:2411.03205 (2024).</p>
+    </list-item>
+    <list-item>
+      <label>10.</label>
+      <p>Mansourian, A., Oucheikh, R.: Bridging natural language and
+      GIS: a multi-agent framework for LLM-driven autonomous geospatial
+      analysis. International Journal of Digital Earth 19(1), 2633849
+      (2026). https://doi.org/10.1080/17538947.2026.2633849</p>
+    </list-item>
+    <list-item>
+      <label>11.</label>
+      <p>Zhang, Q., Gao, S., Wei, C., Zhao, Y., Nie, Y., Chen, Z., Chen,
+      S., Su, Y., Sun, H.: GeoAnalystBench: A GeoAI benchmark for
+      assessing large language models for spatial analysis workflow and
+      code generation. Transactions in GIS 29(7), e70135 (2025).
+      https://doi.org/10.1111/tgis.70135</p>
+    </list-item>
+    <list-item>
+      <label>12.</label>
+      <p>Iyer, M., Kirana, A.P., de By, R.A., Farnaghi, M.:
+      Bench4GeoCode: A benchmark for natural language to geospatial code
+      generation. 1st International Workshop on Geography According to
+      Foundation Models (2026).
+      https://doi.org/10.5281/zenodo.20645018</p>
+    </list-item>
+    <list-item>
+      <label>13.</label>
+      <p>Li, Z., et al.: A research agenda towards autonomous GIS.
+      arXiv:2503.23633 (2025).</p>
+    </list-item>
+    <list-item>
+      <label>14.</label>
+      <p>Han, J., Lee, J., Shim, Y., Kim, J., Lee, J.-J.: GISclaw: An
+      open-source LLM-powered agent system for full-stack geospatial
+      analysis. arXiv:2603.26845 (2026).</p>
+    </list-item>
+    <list-item>
+      <label>15.</label>
+      <p>Ji, Y., Gao, S., Nie, Y., Majic, I., Janowicz, K.: Foundation
+      models for geospatial reasoning: Assessing the capabilities of
+      large language models in understanding geometries and topological
+      spatial relations. arXiv:2505.17136 (2025).</p>
+    </list-item>
+    <list-item>
+      <label>16.</label>
+      <p>Open Geospatial Consortium: OGC GeoSPARQL 1.1 Standard, OGC
+      22-047r1 (2024).
+      https://docs.ogc.org/is/22-047r1/22-047r1.html</p>
+    </list-item>
+    <list-item>
+      <label>17.</label>
+      <p>Car, N.J., Homburg, T.: GeoSPARQL 1.1: Motivations, details and
+      applications of the decadal update to the most important
+      geospatial LOD standard. ISPRS International Journal of
+      Geo-Information 11(2), 117 (2022).
+      https://doi.org/10.3390/ijgi11020117</p>
+    </list-item>
+    <list-item>
+      <label>18.</label>
+      <p>SpatioTemporal Asset Catalog: STAC Specification (2026).
+      https://stacspec.org/</p>
+    </list-item>
+    <list-item>
+      <label>19.</label>
+      <p>Lebo, T., Sahoo, S., McGuinness, D.: PROV-O: The PROV Ontology.
+      W3C Recommendation (2013). https://www.w3.org/TR/prov-o/</p>
+    </list-item>
+    <list-item>
+      <label>20.</label>
+      <p>Knublauch, H., Kontokostas, D.: Shapes Constraint Language
+      (SHACL). W3C Recommendation (2017).
+      https://www.w3.org/TR/shacl/</p>
+    </list-item>
+    <list-item>
+      <label>21.</label>
+      <p>Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K.,
+      Cao, Y.: ReAct: Synergizing reasoning and acting in language
+      models. International Conference on Learning Representations
+      (2023). https://openreview.net/forum?id=WE_vluYUL-X</p>
+    </list-item>
+    <list-item>
+      <label>22.</label>
+      <p>Gorelick, N., Hancher, M., Dixon, M., Ilyushchenko, S., Thau,
+      D., Moore, R.: Google Earth Engine: Planetary-scale geospatial
+      analysis for everyone. Remote Sensing of Environment 202, 18-27
+      (2017). https://doi.org/10.1016/j.rse.2017.06.031</p>
+    </list-item>
+    <list-item>
+      <label>23.</label>
+      <p>Hoyer, S., Hamman, J.J.: xarray: N-D labeled arrays and
+      datasets in Python. Journal of Open Research Software 5, 10
+      (2017). https://doi.org/10.5334/jors.148</p>
+    </list-item>
+    <list-item>
+      <label>24.</label>
+      <p>O'Neill, B.C., et al.: The Scenario Model Intercomparison
+      Project (ScenarioMIP) for CMIP6. Geoscientific Model Development
+      9, 3461-3482 (2016). https://doi.org/10.5194/gmd-9-3461-2016</p>
+    </list-item>
+    <list-item>
+      <label>25.</label>
+      <p>Tebaldi, C., et al.: Climate model projections from the
+      Scenario Model Intercomparison Project (ScenarioMIP) of CMIP6.
+      Earth System Dynamics 12, 253-293 (2021).
+      https://doi.org/10.5194/esd-12-253-2021</p>
+    </list-item>
+    <list-item>
+      <label>26.</label>
+      <p>Green, J., et al.: A comprehensive review of compound flooding
+      in coastal-estuarine regions. Natural Hazards and Earth System
+      Sciences 25, 747-816 (2025).
+      https://doi.org/10.5194/nhess-25-747-2025</p>
+    </list-item>
+    <list-item>
+      <label>27.</label>
+      <p>Meta AI: The Llama 3 Herd of Models. arXiv:2407.21783
+      (2024).</p>
+    </list-item>
+    <list-item>
+      <label>28.</label>
+      <p>Jiang, A.Q., et al.: Mistral 7B. arXiv:2310.06825 (2023).</p>
+    </list-item>
+  </list>
+</sec>
+</body>
+<back>
+</back>
+</article>

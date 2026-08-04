@@ -8,6 +8,9 @@
     defaultBranch: "main",
     baseUrl: "https://xulytiengviet.github.io/LibPub",
     directPublishEnabled: true,
+    zenodo: {
+      repositorySettingsUrl: "https://zenodo.org/account/settings/github/",
+    },
   };
   const LICENSE_URLS = {
     "CC-BY-4.0": "https://creativecommons.org/licenses/by/4.0/",
@@ -60,6 +63,10 @@
     }
     const branch = $("#target-branch");
     if (branch && !branch.dataset.touched) branch.value = config.defaultBranch;
+    const zenodoLink = $("#zenodo-settings-link");
+    if (zenodoLink) {
+      zenodoLink.href = config.zenodo?.repositorySettingsUrl || DEFAULT_CONFIG.zenodo.repositorySettingsUrl;
+    }
   }
 
   async function loadArticles() {
@@ -336,7 +343,7 @@
         if (verified.canPush === false) throw new githubApi.GitHubApiError(403, "NO_PUSH_PERMISSION");
         setStatus(formatMessage("status.tokenValid", verified), "success");
       } catch (error) {
-        setStatus(`${githubErrorMessage(error)} ${tr("status.noToken")}`, "error");
+        setStatus(githubErrorMessage(error), "error");
       } finally {
         checkButton.disabled = false;
       }
@@ -373,7 +380,7 @@
         const actionsLink = `<a href="${repoUrl}/actions" target="_blank" rel="noopener">GitHub Actions</a>`;
         setStatus(formatMessage("publish.success", { commit: commitLink, actions: actionsLink }), "success", true);
       } catch (error) {
-        setStatus(`${githubErrorMessage(error)} ${tr("status.noToken")}`, "error");
+        setStatus(githubErrorMessage(error), "error");
       } finally {
         button.disabled = false;
       }

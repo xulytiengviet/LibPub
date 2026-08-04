@@ -28,7 +28,7 @@ No application server, database or CMS is required.
 
 1. In **Settings → Pages**, select **GitHub Actions** as the deployment source.
 2. In **Settings → Actions → General**, give workflows **Read and write permissions**.
-3. Open [Zenodo’s LibPub repository setting](https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub), connect GitHub and enable this repository.
+3. Open [Zenodo GitHub Settings](https://zenodo.org/account/settings/github/), click **Sync now**, find `xulytiengviet/LibPub` and enable its toggle. Do not use the legacy per-repository URL, which now returns 404.
 4. Keep `zenodo.mode` set to `github-release`. This default mode needs no Zenodo token.
 
 See [the complete Zenodo setup](docs/ZENODO_SETUP.md) for the optional direct REST API mode.

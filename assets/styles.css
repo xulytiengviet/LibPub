@@ -135,6 +135,8 @@ button { cursor: pointer; }
 .security-note { margin-top: 32px; padding: 17px; border-left: 3px solid var(--gold); border-radius: 4px 9px 9px 4px; background: rgba(255,255,255,.06); }
 .security-note strong { color: #f0c669; font-size: 12px; text-transform: uppercase; }
 .security-note p { margin: 5px 0 0; color: #b7cbd9; font-size: 12px; }
+.security-note a { color: #57e0c5; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.setup-note { border-left-color: #48ddc0; }
 .submission-form { padding: 45px; background: var(--paper); }
 .form-progress { display: flex; gap: 8px; margin-bottom: 30px; }
 .form-progress span { flex: 1; padding-bottom: 9px; color: var(--muted); border-bottom: 3px solid var(--line); font-size: 10px; font-weight: 800; text-transform: uppercase; }

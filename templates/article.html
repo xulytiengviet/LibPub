@@ -10,35 +10,35 @@
   <link rel="stylesheet" href="../../assets/styles.css">
 </head>
 <body class="article-page">
-  <a class="skip-link" href="#article-content">Đi đến nội dung</a>
+  <a class="skip-link" href="#article-content">{{LABEL_SKIP}}</a>
   <header class="site-header compact">
     <a class="brand" href="../../index.html" aria-label="Trang chủ {{SITE_NAME}}">
       <span class="brand-mark">L</span><span><strong>{{SITE_NAME}}</strong><small>{{PUBLISHER}}</small></span>
     </a>
-    <nav aria-label="Tác vụ bài báo">
+    <nav aria-label="{{LABEL_ARTICLE_ACTIONS}}">
       <a href="article.xml" download>JATS XML</a>
       <a href="article.pdf" download>PDF</a>
-      <a href="../../index.html#submit">Gửi bản thảo</a>
+      <a href="../../index.html#submit">{{LABEL_SUBMIT}}</a>
     </nav>
   </header>
 
   <main id="article-content" class="article-shell">
     <article class="paper">
       <header class="paper-header">
-        <div class="eyebrow">{{STATUS}} · {{ARTICLE_TYPE}} · phiên bản {{VERSION}}</div>
+        <div class="eyebrow">{{STATUS}} · {{ARTICLE_TYPE}} · {{LABEL_VERSION}} {{VERSION}}</div>
         <h1>{{TITLE}}</h1>
         <p class="subtitle">{{SUBTITLE}}</p>
         <div class="author-list">{{AUTHORS}}</div>
         <ol class="affiliation-list">{{AFFILIATIONS}}</ol>
         <dl class="article-facts">
-          <div><dt>Công bố</dt><dd>{{DATE}}</dd></div>
+          <div><dt>{{LABEL_PUBLISHED}}</dt><dd>{{DATE}}</dd></div>
           <div><dt>DOI</dt><dd>{{DOI}}</dd></div>
-          <div><dt>Giấy phép</dt><dd><a href="{{LICENSE_URL}}">{{LICENSE_ID}}</a></dd></div>
+          <div><dt>{{LABEL_LICENSE}}</dt><dd><a href="{{LICENSE_URL}}">{{LICENSE_ID}}</a></dd></div>
         </dl>
       </header>
 
       <section class="abstract-box" aria-labelledby="abstract-heading">
-        <h2 id="abstract-heading">Tóm tắt</h2>
+        <h2 id="abstract-heading">{{LABEL_ABSTRACT}}</h2>
         <p>{{ABSTRACT}}</p>
         <ul class="keyword-list">{{KEYWORDS}}</ul>
       </section>
@@ -46,21 +46,22 @@
       <div class="paper-body">{{BODY}}</div>
     </article>
 
-    <aside class="article-rail" aria-label="Công cụ bài báo">
+    <aside class="article-rail" aria-label="{{LABEL_ARTICLE_TOOLS}}">
       <div class="rail-card">
-        <strong>Tải toàn văn</strong>
+        <strong>{{LABEL_DOWNLOAD}}</strong>
         <a class="button primary full" href="article.pdf" download>PDF</a>
         <a class="button ghost full" href="article.xml" download>JATS XML</a>
       </div>
       <div class="rail-card">
-        <strong>Trạng thái</strong>
-        <p>Preprint được lưu phiên bản bằng lịch sử Git.</p>
+        <strong>{{LABEL_STATUS}}</strong>
+        <p>{{LABEL_STATUS_NOTE}}</p>
+{{ZENODO_LINK}}
       </div>
     </aside>
   </main>
 
   <footer class="site-footer">
-    <span>Xuất bản bằng {{SITE_NAME}} trên GitHub Pages.</span>
+    <span>{{LABEL_BUILT_WITH}} {{SITE_NAME}} · GitHub Pages.</span>
     <a href="{{LICENSE_URL}}">{{LICENSE_ID}}</a>
   </footer>
 </body>

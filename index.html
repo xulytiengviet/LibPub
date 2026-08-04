@@ -8,48 +8,50 @@
   <title>LibPub · Xuất bản preprint trên GitHub</title>
   <link rel="stylesheet" href="assets/styles.css">
   <script>window.LIBPUB_ARTICLES = [];</script>
+  <script src="assets/i18n.js" defer></script>
   <script src="assets/app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Đi đến nội dung</a>
+  <a class="skip-link" href="#main" data-i18n="page.skip">Đi đến nội dung</a>
   <header class="site-header">
     <a class="brand" href="./" aria-label="Trang chủ LibPub">
       <span class="brand-mark">L</span>
       <span><strong>LibPub</strong><small>Open research infrastructure</small></span>
     </a>
     <nav aria-label="Điều hướng chính">
-      <a href="#catalog">Kho preprint</a>
-      <a href="#workflow">Quy trình</a>
-      <a href="#submit">Gửi bản thảo</a>
-      <a class="nav-github" href="https://github.com/xulytiengviet/LibPub">GitHub ↗</a>
+      <a href="#catalog" data-i18n="nav.catalog">Kho preprint</a>
+      <a href="#workflow" data-i18n="nav.workflow">Quy trình</a>
+      <a href="#submit" data-i18n="nav.submit">Gửi bản thảo</a>
+      <a class="nav-github" href="https://github.com/xulytiengviet/LibPub" data-i18n="nav.github">GitHub ↗</a>
     </nav>
+    <label class="language-switch"><span class="visually-hidden" data-i18n="lang.label">Ngôn ngữ giao diện</span><select id="ui-language" aria-label="Interface language"><option value="vi">VI</option><option value="en">EN</option><option value="zh">中文</option></select></label>
     <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Đổi giao diện sáng tối">◐</button>
   </header>
 
   <main id="main">
     <section class="hero">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="live-dot"></span> GitHub-native preprint publishing</div>
-        <h1>Biến một repository thành <em>máy chủ xuất bản</em> khoa học.</h1>
-        <p>Nhận DOCX hoặc JATS XML, kiểm tra metadata, sinh HTML/PDF và công bố lên GitHub Pages—không cần máy chủ động.</p>
+        <div class="eyebrow"><span class="live-dot"></span> <span data-i18n="hero.eyebrow">GitHub-native preprint publishing</span></div>
+        <h1 data-i18n-html="hero.title">Biến một repository thành <em>máy chủ xuất bản</em> khoa học.</h1>
+        <p data-i18n="hero.description">Nhận DOCX hoặc JATS XML, kiểm tra metadata, sinh HTML/PDF, tạo GitHub Release và đồng bộ DOI Zenodo—không cần máy chủ động.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#submit">Gửi bản thảo ngay</a>
-          <a class="button ghost" href="https://github.com/xulytiengviet/LibPub/blob/main/docs/SUBMISSION_GUIDE.md">Xem hướng dẫn</a>
+          <a class="button primary" href="#submit" data-i18n="hero.submit">Gửi bản thảo ngay</a>
+          <a class="button ghost" href="https://github.com/xulytiengviet/LibPub/blob/main/docs/SUBMISSION_GUIDE.md" data-i18n="hero.guide">Xem hướng dẫn</a>
         </div>
-        <ul class="trust-row" aria-label="Đặc tính hệ thống">
-          <li>✓ Lịch sử phiên bản Git</li><li>✓ HTML + PDF + XML</li><li>✓ Mã nguồn MIT</li>
+        <ul class="trust-row">
+          <li data-i18n="hero.trust1">✓ Lịch sử phiên bản Git</li><li data-i18n="hero.trust2">✓ HTML + PDF + XML</li><li data-i18n="hero.trust3">✓ DOI Zenodo</li>
         </ul>
       </div>
       <section class="hero-panel" aria-label="Trạng thái xuất bản">
         <div class="panel-top"><span>PUBLICATION CONSOLE</span><span class="status-pill ok">READY</span></div>
-        <div class="console-line"><span>Input</span><strong>DOCX · JATS XML</strong></div>
+        <div class="console-line"><span data-i18n="console.input">Đầu vào</span><strong>DOCX · JATS XML</strong></div>
         <div class="console-flow">
           <span>XSweet</span><i>→</i><span>JATS</span><i>→</i><span>HTML/PDF</span>
         </div>
         <div class="metric-grid">
-          <div><strong id="stat-articles">0</strong><small>Preprint</small></div>
-          <div><strong id="stat-authors">0</strong><small>Tác giả</small></div>
-          <div><strong id="stat-formats">3</strong><small>Định dạng</small></div>
+          <div><strong id="stat-articles">0</strong><small data-i18n="console.preprints">Preprint</small></div>
+          <div><strong id="stat-authors">0</strong><small data-i18n="console.authors">Tác giả</small></div>
+          <div><strong id="stat-formats">3</strong><small data-i18n="console.formats">Định dạng</small></div>
         </div>
         <div class="commit-card">
           <span class="commit-icon">⌁</span>
@@ -61,24 +63,24 @@
 
     <section class="section workflow-section" id="workflow">
       <div class="section-heading">
-        <div><span class="kicker">TỰ ĐỘNG HÓA TOÀN TRÌNH</span><h2>Một lần gửi, ba định dạng công bố</h2></div>
-        <p>Pipeline có thể tái lập, kiểm tra được và lưu toàn bộ thay đổi trong lịch sử Git.</p>
+        <div><span class="kicker" data-i18n="workflow.kicker">TỰ ĐỘNG HÓA TOÀN TRÌNH</span><h2 data-i18n="workflow.title">Một lần gửi, ba định dạng và một DOI</h2></div>
+        <p data-i18n="workflow.description">Pipeline có thể tái lập, kiểm tra được và lưu toàn bộ thay đổi trong lịch sử Git.</p>
       </div>
       <ol class="pipeline">
-        <li><span>01</span><div class="pipeline-icon">W</div><h3>Nhận bản thảo</h3><p>DOCX hoặc JATS XML kèm metadata JSON.</p></li>
-        <li><span>02</span><div class="pipeline-icon">X</div><h3>Chuẩn hóa</h3><p>XSweet làm sạch cấu trúc DOCX; Pandoc tạo JATS.</p></li>
-        <li><span>03</span><div class="pipeline-icon">✓</div><h3>Kiểm tra</h3><p>DOI, ORCID, metadata và XML được xác thực.</p></li>
-        <li><span>04</span><div class="pipeline-icon">Aa</div><h3>Dàn trang</h3><p>Sinh trang HTML học thuật và PDF toàn văn.</p></li>
-        <li><span>05</span><div class="pipeline-icon">↗</div><h3>Công bố</h3><p>Deploy artifact bất biến lên GitHub Pages.</p></li>
+        <li><span>01</span><div class="pipeline-icon">W</div><h3 data-i18n="workflow.s1.title">Nhận bản thảo</h3><p data-i18n="workflow.s1.text">DOCX hoặc JATS XML kèm metadata JSON.</p></li>
+        <li><span>02</span><div class="pipeline-icon">X</div><h3 data-i18n="workflow.s2.title">Chuẩn hóa</h3><p data-i18n="workflow.s2.text">XSweet làm sạch DOCX; Pandoc tạo JATS.</p></li>
+        <li><span>03</span><div class="pipeline-icon">✓</div><h3 data-i18n="workflow.s3.title">Kiểm tra</h3><p data-i18n="workflow.s3.text">DOI, ORCID, metadata và XML được xác thực.</p></li>
+        <li><span>04</span><div class="pipeline-icon">Aa</div><h3 data-i18n="workflow.s4.title">Dàn trang</h3><p data-i18n="workflow.s4.text">Sinh HTML học thuật, PDF và release assets.</p></li>
+        <li><span>05</span><div class="pipeline-icon">DOI</div><h3 data-i18n="workflow.s5.title">DOI &amp; công bố</h3><p data-i18n="workflow.s5.text">Release kích hoạt Zenodo, DOI được ghi lại vào trang.</p></li>
       </ol>
     </section>
 
     <section class="section catalog-section" id="catalog">
       <div class="section-heading">
-        <div><span class="kicker">KHO CÔNG BỐ</span><h2>Preprint mới nhất</h2></div>
+        <div><span class="kicker" data-i18n="catalog.kicker">KHO CÔNG BỐ</span><h2 data-i18n="catalog.title">Preprint mới nhất</h2></div>
         <div class="catalog-tools">
-          <label class="search-box"><span>⌕</span><input id="catalog-search" type="search" placeholder="Tìm tiêu đề, tác giả, từ khóa…"></label>
-          <select id="catalog-language" aria-label="Lọc ngôn ngữ"><option value="">Mọi ngôn ngữ</option><option value="vi">Tiếng Việt</option><option value="en">English</option></select>
+          <label class="search-box"><span>⌕</span><input id="catalog-search" type="search" placeholder="Tìm tiêu đề, tác giả, từ khóa…" data-i18n-placeholder="catalog.search"></label>
+          <select id="catalog-language" aria-label="Filter by language"><option value="" data-i18n="catalog.all">Mọi ngôn ngữ</option><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="zh">中文</option></select>
         </div>
       </div>
       <div class="catalog-grid" id="catalog-grid" aria-live="polite"></div>
@@ -87,70 +89,70 @@
 
     <section class="submit-wrap" id="submit">
       <div class="submit-intro">
-        <span class="kicker light">AUTHOR CONSOLE</span>
-        <h2>Gửi và công bố bản thảo</h2>
-        <p>Điền metadata, chọn DOCX hoặc XML và gửi một commit nguyên tử vào repository. GitHub Actions sẽ tự động xử lý phần còn lại.</p>
+        <span class="kicker light" data-i18n="submit.kicker">BẢNG ĐIỀU KHIỂN TÁC GIẢ</span>
+        <h2 data-i18n="submit.title">Gửi và công bố bản thảo</h2>
+        <p data-i18n="submit.description">Điền metadata, chọn DOCX hoặc XML và gửi một commit nguyên tử. GitHub Actions sẽ xử lý từ bản thảo đến DOI.</p>
         <ol class="submit-checklist">
-          <li><span>1</span><div><strong>Khai báo</strong><small>Thông tin bài báo và tác giả</small></div></li>
-          <li><span>2</span><div><strong>Đính kèm</strong><small>manuscript.docx hoặc article.xml</small></div></li>
-          <li><span>3</span><div><strong>Xác thực</strong><small>Token chỉ giữ trong bộ nhớ phiên</small></div></li>
-          <li><span>4</span><div><strong>Submit</strong><small>Commit kích hoạt pipeline công bố</small></div></li>
+          <li><span>1</span><div><strong data-i18n="submit.c1">Khai báo</strong><small data-i18n="submit.c1s">Thông tin bài báo và tác giả</small></div></li>
+          <li><span>2</span><div><strong data-i18n="submit.c2">Đính kèm</strong><small data-i18n="submit.c2s">manuscript.docx hoặc article.xml</small></div></li>
+          <li><span>3</span><div><strong data-i18n="submit.c3">Xác thực</strong><small data-i18n="submit.c3s">Token chỉ giữ trong bộ nhớ phiên</small></div></li>
+          <li><span>4</span><div><strong data-i18n="submit.c4">Submit</strong><small data-i18n="submit.c4s">Commit kích hoạt build, release và DOI</small></div></li>
         </ol>
-        <div class="security-note"><strong>Nguyên tắc DOI</strong><p>LibPub chỉ hiển thị DOI đã được cơ quan đăng ký cấp; nhập DOI không đồng nghĩa với đăng ký DOI mới.</p></div>
+        <div class="security-note"><strong data-i18n="submit.doi.title">Nguyên tắc DOI</strong><p data-i18n="submit.doi.text">DOI nhập tay phải được cấp hợp lệ. Nếu để trống, LibPub có thể tạo DOI Zenodo sau khi merge và release.</p></div>
       </div>
 
       <form class="submission-form" id="submission-form" novalidate>
-        <div class="form-progress"><span class="active">01 Metadata</span><span>02 Tệp</span><span>03 GitHub</span></div>
+        <div class="form-progress"><span class="active" data-i18n="form.progress.meta">01 Metadata</span><span data-i18n="form.progress.file">02 Tệp</span><span data-i18n="form.progress.github">03 GitHub</span></div>
         <fieldset>
-          <legend>Thông tin bài báo</legend>
-          <div class="field span-2"><label for="title">Tiêu đề <b>*</b></label><input id="title" name="title" type="text" minlength="10" required placeholder="Nhập tiêu đề đầy đủ của bản thảo"></div>
-          <div class="field"><label for="slug">Định danh đường dẫn <b>*</b></label><input id="slug" name="slug" type="text" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required placeholder="ten-bai-bao"></div>
-          <div class="field"><label for="doi">DOI đã được cấp</label><input id="doi" name="doi" type="text" placeholder="10.xxxx/xxxxx"></div>
-          <div class="field span-2"><label for="abstract">Tóm tắt <b>*</b></label><textarea id="abstract" name="abstract" minlength="20" required rows="5" placeholder="Mục tiêu, phương pháp, kết quả chính và đóng góp…"></textarea><small><span id="abstract-count">0</span>/10.000 ký tự</small></div>
-          <div class="field span-2"><label for="keywords">Từ khóa <b>*</b></label><input id="keywords" name="keywords" type="text" required placeholder="GitHub Pages; JATS XML; preprint"><small>Phân tách bằng dấu chấm phẩy.</small></div>
-          <div class="field"><label for="language">Ngôn ngữ</label><select id="language" name="language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></div>
-          <div class="field"><label for="article-type">Loại bài</label><select id="article-type" name="articleType"><option value="research-article">Bài nghiên cứu</option><option value="review-article">Bài tổng quan</option><option value="methods-article">Bài phương pháp</option><option value="data-paper">Bài dữ liệu</option><option value="policy-paper">Bài chính sách</option><option value="case-report">Báo cáo trường hợp</option><option value="other">Khác</option></select></div>
-          <div class="field"><label for="published-date">Ngày công bố</label><input id="published-date" name="publishedDate" type="date" required></div>
-          <div class="field"><label for="license">Giấy phép</label><select id="license" name="license"><option value="CC-BY-4.0">CC BY 4.0</option><option value="CC-BY-SA-4.0">CC BY-SA 4.0</option><option value="CC0-1.0">CC0 1.0</option><option value="ARR">All rights reserved</option></select></div>
-          <div class="field"><label for="version">Phiên bản</label><input id="version" name="version" type="number" min="1" value="1" required></div>
-          <div class="field"><label for="status">Trạng thái</label><select id="status" name="status"><option value="preprint">Preprint</option><option value="revised">Revised</option><option value="published">Published</option><option value="withdrawn">Withdrawn</option></select></div>
+          <legend data-i18n="form.article">Thông tin bài báo</legend>
+          <div class="field span-2"><label for="title"><span data-i18n="form.title">Tiêu đề</span> <b>*</b></label><input id="title" name="title" type="text" minlength="10" required placeholder="Nhập tiêu đề đầy đủ của bản thảo" data-i18n-placeholder="form.titlePlaceholder"></div>
+          <div class="field"><label for="slug"><span data-i18n="form.slug">Định danh đường dẫn</span> <b>*</b></label><input id="slug" name="slug" type="text" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required placeholder="ten-bai-bao" data-i18n-placeholder="form.slugPlaceholder"></div>
+          <div class="field"><label for="doi" data-i18n="form.doi">DOI đã được cấp</label><input id="doi" name="doi" type="text" placeholder="10.xxxx/xxxxx"></div>
+          <div class="field span-2"><label for="abstract"><span data-i18n="form.abstract">Tóm tắt</span> <b>*</b></label><textarea id="abstract" name="abstract" minlength="20" required rows="5" placeholder="Mục tiêu, phương pháp, kết quả chính và đóng góp…" data-i18n-placeholder="form.abstractPlaceholder"></textarea><small><span id="abstract-count">0</span><span data-i18n="form.charCount">/10.000 ký tự</span></small></div>
+          <div class="field span-2"><label for="keywords"><span data-i18n="form.keywords">Từ khóa</span> <b>*</b></label><input id="keywords" name="keywords" type="text" required placeholder="GitHub Pages; JATS XML; preprint"><small data-i18n="form.keywordsHint">Phân tách bằng dấu chấm phẩy.</small></div>
+          <div class="field"><label for="language" data-i18n="form.language">Ngôn ngữ</label><select id="language" name="language"><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="zh">中文</option></select></div>
+          <div class="field"><label for="article-type" data-i18n="form.type">Loại bài</label><select id="article-type" name="articleType"><option value="research-article" data-i18n="type.research">Bài nghiên cứu</option><option value="review-article" data-i18n="type.review">Bài tổng quan</option><option value="methods-article" data-i18n="type.methods">Bài phương pháp</option><option value="data-paper" data-i18n="type.data">Bài dữ liệu</option><option value="policy-paper" data-i18n="type.policy">Bài chính sách</option><option value="case-report" data-i18n="type.case">Báo cáo trường hợp</option><option value="other" data-i18n="type.other">Khác</option></select></div>
+          <div class="field"><label for="published-date" data-i18n="form.date">Ngày công bố</label><input id="published-date" name="publishedDate" type="date" required></div>
+          <div class="field"><label for="license" data-i18n="form.license">Giấy phép</label><select id="license" name="license"><option value="CC-BY-4.0">CC BY 4.0</option><option value="CC-BY-SA-4.0">CC BY-SA 4.0</option><option value="CC0-1.0">CC0 1.0</option><option value="ARR" data-i18n="license.arr">Bảo lưu mọi quyền</option></select></div>
+          <div class="field"><label for="version" data-i18n="form.version">Phiên bản</label><input id="version" name="version" type="number" min="1" value="1" required></div>
+          <div class="field"><label for="status" data-i18n="form.status">Trạng thái</label><select id="status" name="status"><option value="preprint" data-i18n="status.preprint">Preprint</option><option value="revised" data-i18n="status.revised">Đã sửa</option><option value="published" data-i18n="status.published">Đã xuất bản</option><option value="withdrawn" data-i18n="status.withdrawn">Đã rút</option></select></div>
         </fieldset>
 
         <fieldset>
-          <legend>Tác giả chính</legend>
-          <div class="field"><label for="given">Tên <b>*</b></label><input id="given" name="given" type="text" required placeholder="Đại Long"></div>
-          <div class="field"><label for="family">Họ <b>*</b></label><input id="family" name="family" type="text" required placeholder="Ngô"></div>
-          <div class="field"><label for="orcid">ORCID</label><input id="orcid" name="orcid" type="url" placeholder="https://orcid.org/0000-0000-0000-0000"></div>
-          <div class="field"><label for="email">Email liên hệ</label><input id="email" name="email" type="email" placeholder="author@example.org"></div>
-          <div class="field span-2"><label for="affiliation">Cơ quan công tác</label><input id="affiliation" name="affiliation" type="text" placeholder="Tên trường, viện hoặc tổ chức"></div>
+          <legend data-i18n="form.authors">Tác giả</legend>
+          <div class="field"><label for="given"><span data-i18n="form.given">Tên</span> <b>*</b></label><input id="given" name="given" type="text" required placeholder="Đại Long"></div>
+          <div class="field"><label for="family"><span data-i18n="form.family">Họ</span> <b>*</b></label><input id="family" name="family" type="text" required placeholder="Ngô"></div>
+          <div class="field"><label for="orcid" data-i18n="form.orcid">ORCID</label><input id="orcid" name="orcid" type="url" placeholder="https://orcid.org/0000-0000-0000-0000"></div>
+          <div class="field"><label for="email" data-i18n="form.email">Email liên hệ</label><input id="email" name="email" type="email" placeholder="author@example.org"></div>
+          <div class="field span-2"><label for="affiliation" data-i18n="form.affiliation">Cơ quan công tác</label><input id="affiliation" name="affiliation" type="text" placeholder="Tên trường, viện hoặc tổ chức" data-i18n-placeholder="form.affiliationPlaceholder"></div>
           <div class="coauthor-list span-2" id="coauthor-list"></div>
-          <button class="button add-author span-2" id="add-author" type="button">＋ Thêm đồng tác giả</button>
+          <button class="button add-author span-2" id="add-author" type="button" data-i18n="form.addAuthor">＋ Thêm đồng tác giả</button>
         </fieldset>
 
         <fieldset>
-          <legend>Bản thảo và GitHub</legend>
+          <legend data-i18n="form.source">Bản thảo và GitHub</legend>
           <div class="field span-2">
-            <label class="file-drop" for="manuscript"><span class="file-icon">⇧</span><strong id="file-label">Chọn manuscript.docx hoặc article.xml</strong><small>Tối đa 25 MB · tệp không rời trình duyệt cho đến khi Submit</small></label>
+            <label class="file-drop" for="manuscript"><span class="file-icon">⇧</span><strong id="file-label" data-i18n="form.file">Chọn manuscript.docx hoặc article.xml</strong><small data-i18n="form.fileHint">Tối đa 25 MB · tệp chỉ được gửi khi bấm Submit</small></label>
             <input class="visually-hidden" id="manuscript" name="manuscript" type="file" accept=".docx,.xml,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml,text/xml" required>
           </div>
-          <div class="field"><label for="target-branch">Nhánh công bố</label><input id="target-branch" name="targetBranch" type="text" value="main" required></div>
-          <div class="field"><label for="github-token">Fine-grained token <b>*</b></label><input id="github-token" name="githubToken" type="password" autocomplete="new-password" required placeholder="github_pat_…"><small>Chỉ cần quyền Contents: read/write cho LibPub.</small></div>
-          <label class="checkbox span-2"><input id="doi-confirm" type="checkbox" required><span>Tôi xác nhận DOI (nếu có) đã được cấp hợp lệ và tôi có quyền công bố bản thảo này.</span></label>
+          <div class="field"><label for="target-branch" data-i18n="form.branch">Nhánh công bố</label><input id="target-branch" name="targetBranch" type="text" value="main" required></div>
+          <div class="field"><label for="github-token"><span data-i18n="form.token">Fine-grained token</span> <b>*</b></label><input id="github-token" name="githubToken" type="password" autocomplete="new-password" required placeholder="github_pat_…"><small data-i18n="form.tokenHint">Chỉ cần quyền Contents: read/write cho LibPub.</small></div>
+          <label class="checkbox span-2"><input id="doi-confirm" type="checkbox" required><span data-i18n="form.confirm">Tôi xác nhận DOI nhập tay (nếu có) hợp lệ và tôi có quyền công bố bản thảo này.</span></label>
         </fieldset>
 
         <div class="form-actions">
-          <button class="button ghost" id="download-metadata" type="button">Tải metadata.json</button>
-          <button class="button primary" id="submit-button" type="submit"><span>Submit &amp; Publish</span><i>→</i></button>
+          <button class="button ghost" id="download-metadata" type="button" data-i18n="form.download">Tải metadata.json</button>
+          <button class="button primary" id="submit-button" type="submit"><span data-i18n="form.publish">Submit &amp; Publish</span><i>→</i></button>
         </div>
         <div class="form-status" id="form-status" role="status" aria-live="polite" hidden></div>
-        <p class="token-policy">Token không được ghi vào localStorage, URL, log hay tệp tải xuống. Hãy thu hồi token sau khi không còn sử dụng.</p>
+        <p class="token-policy" data-i18n="form.tokenPolicy">Token không được ghi vào storage, URL, log hay tệp tải xuống. Hãy thu hồi token sau khi không còn sử dụng.</p>
       </form>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="brand"><span class="brand-mark">L</span><span><strong>LibPub</strong><small>Open infrastructure for open knowledge</small></span></div>
-    <div><a href="https://github.com/xulytiengviet/LibPub">Mã nguồn</a><a href="feed.xml">Atom feed</a><a href="schemas/metadata.schema.json">Metadata schema</a></div>
+    <div><a href="https://github.com/xulytiengviet/LibPub" data-i18n="footer.source">Mã nguồn</a><a href="feed.xml">Atom feed</a><a href="schemas/metadata.schema.json">Metadata schema</a></div>
     <span>MIT · 2026 Long Ngo</span>
   </footer>
 </body>

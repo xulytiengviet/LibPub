@@ -42,6 +42,7 @@
     },
     "status": { "enum": ["preprint", "published", "revised", "withdrawn"] },
     "version": { "type": "integer", "minimum": 1 },
+    "autoDoi": { "type": "boolean" },
     "doi": {
       "type": "string",
       "pattern": "^$|^10\\.\\d{4,9}/[-._;()/:A-Za-z0-9]+$"
@@ -95,7 +96,20 @@
     },
     "funding": { "type": "string", "maxLength": 5000 },
     "conflictOfInterest": { "type": "string", "maxLength": 5000 },
-    "dataAvailability": { "type": "string", "maxLength": 5000 }
+    "dataAvailability": { "type": "string", "maxLength": 5000 },
+    "zenodo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["doi", "recordUrl", "source", "tag", "syncedAt"],
+      "properties": {
+        "doi": { "type": "string", "pattern": "^10\\.\\d{4,9}/[-._;()/:A-Za-z0-9]+$" },
+        "conceptDoi": { "type": "string" },
+        "recordId": { "type": "string" },
+        "recordUrl": { "type": "string", "format": "uri" },
+        "source": { "enum": ["github-release", "zenodo-api"] },
+        "tag": { "type": "string", "pattern": "^v[0-9]+\\.0-[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "syncedAt": { "type": "string", "format": "date-time" }
+      }
+    }
   }
 }
-

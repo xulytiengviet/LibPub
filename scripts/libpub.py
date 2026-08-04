@@ -100,6 +100,8 @@ def validate_metadata(data: dict[str, Any], expected_slug: str | None = None) ->
         raise LibPubError("status không hợp lệ.")
     if not isinstance(data.get("version"), int) or data["version"] < 1:
         raise LibPubError("version phải là số nguyên từ 1.")
+    if "autoDoi" in data and not isinstance(data["autoDoi"], bool):
+        raise LibPubError("autoDoi phải là true hoặc false.")
     for field in ("publishedDate", "receivedDate", "acceptedDate"):
         value = data.get(field)
         if value and (not isinstance(value, str) or not _valid_iso_date(value)):
@@ -244,4 +246,3 @@ def slugify(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     slug = re.sub(r"[^a-z0-9]+", "-", normalized.casefold()).strip("-")
     return slug[:100] or "ban-thao-moi"
-

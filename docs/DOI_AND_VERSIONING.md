@@ -1,29 +1,43 @@
 # DOI và quản lý phiên bản
 
-## LibPub làm gì với DOI?
+## DOI được tạo khi nào?
 
-LibPub:
+Khi `metadata.json` để `doi` trống, `zenodo.enabled` và `zenodo.autoDoi` đều là `true`, một merge vào `main` sẽ tạo tag `v<version>.0-<slug>` và GitHub Release. Workflow tiếp theo lấy DOI Zenodo rồi ghi các trường sau về bài:
 
-- kiểm tra mẫu cú pháp DOI;
-- ghi DOI vào JATS XML sinh từ DOCX;
-- thêm `citation_doi` và JSON-LD cho trang bài báo;
-- tạo liên kết tới `https://doi.org/<doi>`.
+```json
+{
+  "doi": "10.5281/zenodo.12345678",
+  "zenodo": {
+    "doi": "10.5281/zenodo.12345678",
+    "conceptDoi": "10.5281/zenodo.12345677",
+    "recordId": "12345678",
+    "recordUrl": "https://zenodo.org/records/12345678",
+    "source": "github-release",
+    "tag": "v1.0-ten-bai-bao",
+    "syncedAt": "..."
+  }
+}
+```
 
-LibPub không đăng ký DOI và không xác nhận DOI có tồn tại hay thuộc quyền của tác giả. Trách nhiệm này thuộc chủ repository và cơ quan đăng ký DOI.
+DOI xuất hiện trên dashboard, trang bài báo, citation meta và JSON-LD. DOI nhập tay không bị thay thế và sẽ làm LibPub bỏ qua auto-DOI cho bài đó.
 
-## Khi chưa có DOI
+## Quy tắc phiên bản bất biến
 
-Để `doi` là chuỗi rỗng. Bài báo vẫn có URL ổn định theo `baseUrl/articles/<slug>/` và lịch sử commit. Có thể thêm DOI ở phiên bản sau bằng một commit mới.
-
-## Phiên bản
-
+- Giữ nguyên `slug` để duy trì URL trang đích.
 - Tăng `version` khi nội dung khoa học thay đổi.
-- Giữ `slug` để duy trì URL trang đích.
-- Cập nhật `publishedDate` cho phiên bản mới.
-- Không ghi đè lịch sử Git hoặc xóa bản cũ khỏi lịch sử.
-- Nếu cơ quan đăng ký cấp DOI riêng cho từng phiên bản, cập nhật DOI tương ứng; nếu dùng DOI khái niệm, tuân theo chính sách của cơ quan đó.
+- Cập nhật `publishedDate` và nguồn DOCX/XML.
+- Trước khi xin DOI cho phiên bản mới, xóa có chủ đích `doi` và khối `zenodo` của phiên bản cũ; lịch sử Git vẫn giữ DOI cũ.
+- Không xóa, di chuyển hoặc ghi đè tag/Release đã công bố.
+- Nếu chỉ sửa lỗi website không thay đổi nội dung bài, không tăng `version`; release planner chỉ xem bài có thay đổi và bỏ qua tag đã đồng bộ.
+
+## DOI phiên bản và DOI khái niệm
+
+Zenodo thường trả DOI riêng cho bản ghi phiên bản và có thể trả `conceptDoi` nối các phiên bản. LibPub lưu cả hai nhưng dùng DOI phiên bản trong trường `doi`. Chính sách trích dẫn cuối cùng thuộc đơn vị xuất bản.
+
+## Chạy lại khi Zenodo xử lý chậm
+
+Vào **Actions → Zenodo DOI Sync → Run workflow**, nhập đúng `slug` và tag đã tạo. Workflow không ghi đè một DOI khác, vì vậy thao tác chạy lại an toàn theo cùng phiên bản.
 
 ## Rút lại
 
-Đặt `status: "withdrawn"` và công bố thông báo rút lại minh bạch. Không tái sử dụng DOI của bài đã rút cho một công trình khác.
-
+Đặt `status: "withdrawn"` và công bố thông báo rút lại minh bạch. Release planner không tạo DOI mới cho bài đã rút. Không tái sử dụng DOI hoặc tag của công trình đã rút.

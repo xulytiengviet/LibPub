@@ -1,4 +1,7 @@
 <div align="center">
+
+**[Tiếng Việt](README.md) · [English](README.en.md) · [简体中文](README.zh-CN.md)**
+
   <img src="assets/libpub-banner.svg" alt="LibPub — GitHub-native preprint publishing" width="100%">
 </div>
 
@@ -10,9 +13,9 @@
 [![JATS XML](https://img.shields.io/badge/Source-JATS_XML-092c4c.svg)](https://jats.nlm.nih.gov/)
 
 **LibPub biến một GitHub repository thành máy chủ xuất bản preprint tĩnh.**  
-Tác giả gửi DOCX hoặc JATS XML; pipeline tự kiểm tra, sinh HTML/PDF/XML và deploy lên GitHub Pages.
+Tác giả gửi DOCX hoặc JATS XML; pipeline tự kiểm tra, sinh HTML/PDF/XML, tạo GitHub Release, lấy DOI Zenodo và deploy lên GitHub Pages.
 
-[🌐 Trang xuất bản](https://xulytiengviet.github.io/LibPub) · [📝 Gửi bản thảo](https://xulytiengviet.github.io/LibPub/#submit) · [📖 Hướng dẫn chi tiết](docs/SUBMISSION_GUIDE.md) · [🏗️ Kiến trúc](docs/ARCHITECTURE.md)
+[🌐 Trang xuất bản](https://xulytiengviet.github.io/LibPub) · [📝 Gửi bản thảo](https://xulytiengviet.github.io/LibPub/#submit) · [📖 Hướng dẫn](docs/SUBMISSION_GUIDE.md) · [🔗 Thiết lập Zenodo](docs/ZENODO_SETUP.md) · [🏗️ Kiến trúc](docs/ARCHITECTURE.md)
 
 </div>
 
@@ -44,10 +47,12 @@ flowchart TD
     E --> F
     B --> F
     F --> G["HTML + PDF + XML + JSON-LD"]
-    G --> H["GitHub Pages"]
+    G --> H["Release + tag phiên bản"]
+    H --> I["Zenodo DOI"]
+    I --> J["Ghi DOI về metadata + Pages"]
 ```
 
-Mỗi commit là một dấu mốc có thể kiểm tra. Với DOCX, `article.xml` sinh ra được commit trở lại repository bằng tài khoản `github-actions[bot]`, sau đó cùng bản dựng HTML/PDF được đóng gói thành Pages artifact.
+Mỗi commit là một dấu mốc có thể kiểm tra. Với DOCX, `article.xml` sinh ra được commit trở lại repository bằng tài khoản `github-actions[bot]`. Mỗi phiên bản đã duyệt nhận tag dạng `v<version>.0-<slug>`, một GitHub Release có PDF/XML/metadata và—khi Zenodo đã được bật—một DOI được ghi tự động về bài báo.
 
 ## Bắt đầu trong 5 phút
 
@@ -55,7 +60,15 @@ Mỗi commit là một dấu mốc có thể kiểm tra. Với DOCX, `article.xm
 
 Vào **Settings → Pages → Build and deployment → Source**, chọn **GitHub Actions**. Workflow chỉ deploy được sau khi Pages dùng nguồn GitHub Actions.
 
-### 2. Chọn một trong hai cách gửi
+### 2. Bật quyền workflow và Zenodo một lần
+
+1. Vào **Settings → Actions → General → Workflow permissions**, chọn **Read and write permissions**.
+2. Mở [thiết lập Zenodo cho LibPub](https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub), kết nối GitHub nếu cần và bật repository.
+3. Giữ `zenodo.mode` là `github-release` trong `publication.config.json`. Chế độ mặc định không cần secret Zenodo.
+
+Hướng dẫn đầy đủ và chế độ REST API tùy chọn: [`docs/ZENODO_SETUP.md`](docs/ZENODO_SETUP.md).
+
+### 3. Chọn một trong hai cách gửi
 
 #### Cách A — Dashboard “Submit & Publish”
 
@@ -103,6 +116,7 @@ Pull request sẽ chạy workflow **Validate submission** nhưng không deploy. 
   "articleType": "research-article",
   "status": "preprint",
   "version": 1,
+  "autoDoi": true,
   "doi": "10.1234/libpub.2026.001",
   "publishedDate": "2026-08-04",
   "license": {
@@ -127,21 +141,26 @@ Pull request sẽ chạy workflow **Validate submission** nhưng không deploy. 
 
 Schema đầy đủ: [`schemas/metadata.schema.json`](schemas/metadata.schema.json). Bài mẫu có thể chạy ngay: [`articles/demo-libpub`](articles/demo-libpub).
 
-## DOI: nhập để hiển thị, không phải đăng ký
+## DOI tự động qua Zenodo
 
-LibPub kiểm tra cú pháp và xuất DOI vào HTML meta tags, JSON-LD, JATS và liên kết `doi.org`. LibPub **không cấp, mint hoặc đăng ký DOI**. DOI phải được cấp trước qua Crossref, DataCite, Zenodo hoặc cơ quan đăng ký phù hợp. Xem [quy tắc DOI và phiên bản](docs/DOI_AND_VERSIONING.md).
+- Nếu `doi` để trống, merge vào `main` sẽ dựng bài, tạo tag/Release, rồi workflow **Zenodo DOI Sync** chờ Zenodo cấp DOI và ghi DOI cùng URL bản ghi trở lại `metadata.json`.
+- Có thể đặt `autoDoi: false` cho bài mẫu hoặc bản nháp không được phép tạo Release/DOI.
+- Nếu `doi` đã có, LibPub chỉ kiểm tra cú pháp và hiển thị DOI đó; hệ thống không tạo thêm bản ghi Zenodo.
+- Mỗi phiên bản khoa học phải tăng `version`. Tag mặc định là `v<version>.0-<slug>` và không được ghi đè.
+- Tích hợp GitHub của Zenodo có thể cần vài phút để xử lý. Workflow đồng bộ có thể chạy lại thủ công với đúng `slug` và `tag` nếu hết thời gian chờ.
+
+Chi tiết: [thiết lập Zenodo](docs/ZENODO_SETUP.md) và [DOI & quản lý phiên bản](docs/DOI_AND_VERSIONING.md).
 
 ## Sản phẩm của mỗi bài
 
 | Sản phẩm | Đường dẫn | Mục đích |
 |---|---|---|
-| Trang đọc HTML | `articles/<slug>/index.html` | Đọc trên web, SEO, JSON-LD/Highwire meta |
-| PDF | `articles/<slug>/article.pdf` | Tải xuống, lưu trữ, trích dẫn |
-| JATS XML | `articles/<slug>/article.xml` | Máy đọc, trao đổi, tái xuất bản |
-| DOCX gốc | `articles/<slug>/manuscript.docx` | Đối chiếu nguồn nếu tác giả gửi DOCX |
-| Chỉ mục JSON | `articles.json` | Dashboard, tìm kiếm, tích hợp API tĩnh |
-| Atom feed | `feed.xml` | Theo dõi công bố mới |
-| Sitemap | `sitemap.xml` | Khám phá và lập chỉ mục |
+| Trang đọc HTML | `output/articles/<slug>/index.html` | Đọc trên web, SEO, JSON-LD/Highwire meta |
+| PDF | `output/articles/<slug>/article.pdf` | Release asset, tải xuống và trích dẫn |
+| JATS XML | `output/articles/<slug>/article.xml` | Máy đọc, trao đổi, tái xuất bản |
+| Metadata | `output/articles/<slug>/metadata.json` | Bản mô tả LibPub có DOI/Zenodo |
+| Zenodo metadata | `output/articles/<slug>/zenodo.json` | Metadata cho release/tag hiện hành |
+| Chỉ mục/feed | `output/articles.json`, `feed.xml` | Dashboard và theo dõi công bố |
 
 ## Chạy cục bộ
 
@@ -151,8 +170,8 @@ Yêu cầu: Python 3.12+, `lxml`, Pandoc và XeLaTeX nếu cần PDF.
 python -m pip install -r requirements.txt
 python scripts/prepare_sources.py --write-back
 python -m unittest discover -s tests -v
-python scripts/build.py --output dist
-python -m http.server 8000 --directory dist
+python scripts/build.py --output output
+python -m http.server 8000 --directory output
 ```
 
 Mở `http://localhost:8000`. Có thể dùng `make build`, `make test`, `make serve` trên Linux/macOS.
@@ -193,7 +212,14 @@ Sửa `publication.config.json`:
   "repository": "owner/repository",
   "defaultBranch": "main",
   "baseUrl": "https://owner.github.io/repository",
-  "directPublishEnabled": true
+  "directPublishEnabled": true,
+  "languages": ["vi", "en", "zh"],
+  "zenodo": {
+    "enabled": true,
+    "autoDoi": true,
+    "mode": "github-release",
+    "apiUrl": "https://zenodo.org"
+  }
 }
 ```
 
@@ -203,7 +229,7 @@ Sửa `publication.config.json`:
 
 - GitHub Pages là hosting tĩnh; không có đăng nhập máy chủ, database hoặc secret an toàn trong frontend.
 - Dashboard không thể nhận bài công cộng mà không có xác thực. Fine-grained token là ủy quyền của chính người dùng.
-- LibPub không thay thế bình duyệt, kiểm tra đạo văn, đăng ký DOI, CLOCKSS/LOCKSS hoặc lưu chiểu pháp định.
+- LibPub tự động hóa việc lưu trữ Zenodo/DOI nhưng không thay thế bình duyệt, kiểm tra đạo văn, CLOCKSS/LOCKSS hoặc lưu chiểu pháp định.
 - XSweet service tham chiếu dùng nền tảng PHP/Saxon cũ; pipeline có fallback Pandoc để tránh khóa toàn bộ xuất bản. Trước khi dùng sản xuất quy mô lớn, nên pin/cập nhật image và vendor stylesheet đã kiểm định.
 - PDF bằng Pandoc/XeLaTeX ưu tiên khả năng tái lập; tài liệu có bố cục đặc biệt có thể cần template TeX riêng.
 
@@ -218,4 +244,3 @@ Mã LibPub phát hành theo [MIT License](LICENSE). Nội dung bài báo giữ g
 <div align="center">
   <strong>LibPub</strong> · Open infrastructure for open knowledge · Phát triển bởi Long Ngo
 </div>
-

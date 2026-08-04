@@ -1,6 +1,7 @@
 .libpub/
 dist/
 dist-full/
+output/
 tmp/
 __pycache__/
 *.pyc

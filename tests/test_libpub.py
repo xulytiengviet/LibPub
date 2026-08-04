@@ -62,6 +62,23 @@ class ArticleTests(unittest.TestCase):
             self.assertEqual(records[0]["slug"], "demo-libpub")
             self.assertIn("i18n.js", (output / "index.html").read_text(encoding="utf-8"))
 
+    def test_docx_conversion_produces_standalone_jats(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "prepare_sources.py"), "--force"],
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        generated = ROOT / ".libpub" / "work" / "geoplan-verifiable-geoworkflows-iccies2027" / "article.xml"
+        self.assertTrue(generated.exists())
+        source = generated.read_text(encoding="utf-8")
+        self.assertIn("<article", source)
+        body = source.split("<body>", 1)[1]
+        self.assertNotIn("<bold>From Natural Language to Verifiable GeoWorkflows", body)
+        self.assertNotIn("<bold>Abstract.</bold>", body)
+
 
 class ZenodoTests(unittest.TestCase):
     def setUp(self) -> None:

@@ -200,6 +200,8 @@ def render_pdf(print_html: str, output: Path, resource_path: Path) -> None:
             "xelatex",
             "--resource-path",
             str(resource_path),
+            "--lua-filter",
+            str(ROOT / "scripts" / "pdf_tables.lua"),
             "--variable",
             "mainfont=DejaVu Serif",
             "--variable",

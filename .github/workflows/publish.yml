@@ -13,10 +13,21 @@ on:
       - "index.html"
       - "publication.config.json"
       - "requirements.txt"
-      - ".github/workflows/publish.yml"
+      - ".github/workflows/**"
   workflow_dispatch:
+    inputs:
+      slug:
+        description: "Article slug to release; leave empty to build only"
+        required: false
+        type: string
+      create_release:
+        description: "Create GitHub Release and start Zenodo sync"
+        required: true
+        default: true
+        type: boolean
 
 permissions:
+  actions: write
   contents: write
   pages: write
   id-token: write
@@ -27,9 +38,9 @@ concurrency:
 
 jobs:
   build:
-    name: Validate and build publications
+    name: Build, release and prepare Pages
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -49,7 +60,6 @@ jobs:
           python -m pip install -r requirements.txt
 
       - name: Start XSweet when DOCX exists
-        id: xsweet
         shell: bash
         run: |
           if ! find articles -type f -name 'manuscript.docx' -print -quit | grep -q .; then
@@ -86,20 +96,90 @@ jobs:
           git add 'articles/*/article.xml'
           git commit -m "build: preserve generated JATS XML"
           if ! git push; then
-            echo "::warning::Could not preserve generated XML (branch protection may require a PR); continuing with the in-run build."
+            echo "::warning::Could not preserve generated XML; continuing with the in-run build."
           fi
 
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
       - name: Build HTML, PDF and machine-readable indexes
-        run: python scripts/build.py --output dist
+        run: python scripts/build.py --output output
 
-      - name: Upload reproducible build
+      - name: Calculate article release plan
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+          MANUAL_SLUG: ${{ inputs.slug }}
+        run: |
+          python scripts/release_plan.py \
+            --before "${BEFORE_SHA:-}" \
+            --after "${AFTER_SHA:-HEAD}" \
+            --slug "${MANUAL_SLUG:-}" \
+            --output .libpub/release-plan.json
+
+      - name: Create versioned GitHub Releases and start Zenodo sync
+        if: ${{ github.event_name == 'push' || inputs.create_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(jq 'length' .libpub/release-plan.json)" -eq 0 ]; then
+            echo "No article needs a release."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          base_sha="$(git rev-parse HEAD)"
+          while IFS= read -r item; do
+            slug="$(jq -r '.slug' <<<"$item")"
+            tag="$(jq -r '.tag' <<<"$item")"
+            version="$(jq -r '.version' <<<"$item")"
+            title="$(jq -r '.title' <<<"$item")"
+            asset_dir="output/articles/$slug"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "::error::Release $tag already exists. Increase metadata.version before publishing scientific changes."
+              exit 1
+            fi
+            python scripts/zenodo.py metadata \
+              --article "articles/$slug" \
+              --repository "$GITHUB_REPOSITORY" \
+              --tag "$tag" \
+              --output "$asset_dir/zenodo.json"
+
+            archive_dir="$(mktemp -d)"
+            git worktree add --detach "$archive_dir" "$base_sha"
+            cp "$asset_dir/zenodo.json" "$archive_dir/.zenodo.json"
+            (
+              cd "$archive_dir"
+              git add .zenodo.json
+              git commit -m "archive: $slug v$version"
+              git tag "$tag"
+              git push origin "refs/tags/$tag"
+            )
+            git worktree remove "$archive_dir"
+
+            assets=(
+              "$asset_dir/article.pdf#Full text PDF"
+              "$asset_dir/article.xml#JATS XML"
+              "$asset_dir/metadata.json#LibPub metadata"
+              "$asset_dir/zenodo.json#Zenodo metadata"
+            )
+            if [ -f "$asset_dir/manuscript.docx" ]; then
+              assets+=("$asset_dir/manuscript.docx#Original DOCX")
+            fi
+            gh release create "$tag" "${assets[@]}" \
+              --verify-tag \
+              --title "$title (v$version)" \
+              --notes "Automated LibPub article release. Zenodo synchronization has been requested."
+            gh workflow run zenodo-sync.yml --ref main -f slug="$slug" -f tag="$tag"
+          done < <(jq -c '.[]' .libpub/release-plan.json)
+
+      - name: Upload reproducible output
         uses: actions/upload-artifact@v4
         with:
-          name: libpub-build-${{ github.sha }}
-          path: dist/
+          name: libpub-output-${{ github.sha }}
+          path: output/
           retention-days: 30
 
       - name: Configure GitHub Pages
@@ -108,7 +188,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dist/
+          path: output/
 
   deploy:
     name: Deploy GitHub Pages
@@ -125,3 +205,4 @@ jobs:
       - name: Deploy publication site
         id: deployment
         uses: actions/deploy-pages@v4
+

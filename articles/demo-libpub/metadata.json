@@ -15,6 +15,7 @@
   "articleType": "methods-article",
   "status": "preprint",
   "version": 1,
+  "autoDoi": false,
   "doi": "",
   "publishedDate": "2026-08-04",
   "receivedDate": "2026-08-04",
@@ -44,4 +45,3 @@
   "conflictOfInterest": "Tác giả tuyên bố không có xung đột lợi ích.",
   "dataAvailability": "Mã nguồn và dữ liệu cấu hình được lưu trong repository LibPub."
 }
-

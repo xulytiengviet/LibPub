@@ -18,6 +18,12 @@
   let config = DEFAULT_CONFIG;
   let articles = Array.isArray(window.LIBPUB_ARTICLES) ? window.LIBPUB_ARTICLES : [];
 
+  const tr = (key, fallback = "") => window.LibPubI18n?.translate(key, fallback) || fallback;
+  const formatMessage = (key, values = {}, fallback = "") => Object.entries(values).reduce(
+    (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
+    tr(key, fallback),
+  );
+
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
   })[char]);
@@ -88,21 +94,21 @@
     grid.innerHTML = filtered.map((article) => {
       const doi = article.doi
         ? `<a href="${escapeHtml(article.doiUrl)}" target="_blank" rel="noopener">${escapeHtml(article.doi)}</a>`
-        : `<span>Không DOI</span>`;
+        : `<span>${escapeHtml(tr("catalog.noDoi", "Đang chờ DOI"))}</span>`;
       return `<article class="publication-card">
         <div class="card-meta"><span>${escapeHtml(article.articleType || "preprint")}</span><span>v${escapeHtml(article.version || 1)} · ${escapeHtml(article.language || "")}</span></div>
         <h3><a href="${escapeHtml(article.url)}">${escapeHtml(article.title)}</a></h3>
         <div class="authors">${escapeHtml((article.authors || []).join(", "))}</div>
         <p class="abstract">${escapeHtml(article.abstract || "")}</p>
-        <div class="card-footer">${doi}<a href="${escapeHtml(article.url)}">Đọc toàn văn →</a></div>
+        <div class="card-footer">${doi}<a href="${escapeHtml(article.url)}">${escapeHtml(tr("catalog.read", "Đọc toàn văn →"))}</a></div>
       </article>`;
     }).join("");
     empty.hidden = filtered.length > 0;
     if (!articles.length) {
       empty.hidden = false;
-      empty.textContent = "Kho preprint sẽ xuất hiện sau lần build đầu tiên. Bạn có thể gửi bản thảo ngay bên dưới.";
+      empty.textContent = tr("catalog.empty", "Kho preprint sẽ xuất hiện sau lần build đầu tiên.");
     } else {
-      empty.textContent = "Chưa tìm thấy bài báo phù hợp.";
+      empty.textContent = tr("catalog.noMatch", "Chưa tìm thấy bài báo phù hợp.");
     }
   }
 
@@ -145,6 +151,7 @@
       articleType: String(data.get("articleType") || "research-article"),
       status: String(data.get("status") || "preprint"),
       version: Number(data.get("version") || 1),
+      autoDoi: true,
       doi: String(data.get("doi") || "").trim(),
       publishedDate: String(data.get("publishedDate") || ""),
       license: {
@@ -160,20 +167,20 @@
   }
 
   function validateSubmission(metadata, file) {
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.slug)) throw new Error("Định danh đường dẫn không hợp lệ.");
-    if (metadata.title.length < 10) throw new Error("Tiêu đề phải có ít nhất 10 ký tự.");
-    if (metadata.abstract.length < 20) throw new Error("Tóm tắt phải có ít nhất 20 ký tự.");
-    if (!metadata.keywords.length) throw new Error("Cần ít nhất một từ khóa.");
-    if (metadata.doi && !/^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/.test(metadata.doi)) throw new Error("DOI không đúng cú pháp.");
-    if (!Number.isInteger(metadata.version) || metadata.version < 1) throw new Error("Phiên bản phải là số nguyên từ 1.");
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.slug)) throw new Error(tr("error.slug"));
+    if (metadata.title.length < 10) throw new Error(tr("error.title"));
+    if (metadata.abstract.length < 20) throw new Error(tr("error.abstract"));
+    if (!metadata.keywords.length) throw new Error(tr("error.keywords"));
+    if (metadata.doi && !/^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/.test(metadata.doi)) throw new Error(tr("error.doi"));
+    if (!Number.isInteger(metadata.version) || metadata.version < 1) throw new Error(tr("error.version"));
     metadata.authors.forEach((author, index) => {
-      if (!author.given || !author.family) throw new Error(`Tác giả ${index + 1} thiếu họ hoặc tên.`);
-      if (author.orcid && !validOrcid(author.orcid)) throw new Error(`ORCID của tác giả ${index + 1} không hợp lệ hoặc sai checksum.`);
+      if (!author.given || !author.family) throw new Error(formatMessage("error.author", { n: index + 1 }));
+      if (author.orcid && !validOrcid(author.orcid)) throw new Error(formatMessage("error.orcid", { n: index + 1 }));
     });
-    if (!file) throw new Error("Chưa chọn bản thảo DOCX hoặc XML.");
+    if (!file) throw new Error(tr("error.noFile"));
     const lower = file.name.toLowerCase();
-    if (!lower.endsWith(".docx") && !lower.endsWith(".xml")) throw new Error("LibPub chỉ nhận tệp .docx hoặc .xml.");
-    if (file.size > 25 * 1024 * 1024) throw new Error("Tệp vượt quá giới hạn 25 MB của dashboard.");
+    if (!lower.endsWith(".docx") && !lower.endsWith(".xml")) throw new Error(tr("error.fileType"));
+    if (file.size > 25 * 1024 * 1024) throw new Error(tr("error.fileSize"));
   }
 
   function setStatus(message, kind = "info", markup = false) {
@@ -220,7 +227,7 @@
       headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28" },
     });
     if (response.status === 404) return false;
-    if (!response.ok) throw new Error(`Không kiểm tra được đường dẫn bài báo (${response.status}).`);
+    if (!response.ok) throw new Error(`GitHub API: ${response.status} ${response.statusText}`);
     return true;
   }
 
@@ -284,7 +291,7 @@
     $("#target-branch").addEventListener("input", (event) => { event.target.dataset.touched = "true"; });
     $("#manuscript").addEventListener("change", (event) => {
       const file = event.target.files[0];
-      $("#file-label").textContent = file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : "Chọn manuscript.docx hoặc article.xml";
+      $("#file-label").textContent = file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : tr("form.file", "Chọn manuscript.docx hoặc article.xml");
     });
     let authorNumber = 1;
     $("#add-author").addEventListener("click", () => {
@@ -292,21 +299,21 @@
       const row = document.createElement("div");
       row.className = "coauthor";
       row.dataset.coauthor = String(authorNumber);
-      row.innerHTML = `<h4>Đồng tác giả ${authorNumber}</h4><button class="remove-author" type="button" aria-label="Xóa đồng tác giả ${authorNumber}">Xóa</button>
-        <div class="field"><label for="co-given-${authorNumber}">Tên <b>*</b></label><input id="co-given-${authorNumber}" data-field="given" type="text" required></div>
-        <div class="field"><label for="co-family-${authorNumber}">Họ <b>*</b></label><input id="co-family-${authorNumber}" data-field="family" type="text" required></div>
+      row.innerHTML = `<h4><span data-i18n="coauthor.title">${escapeHtml(tr("coauthor.title", "Đồng tác giả"))}</span> ${authorNumber}</h4><button class="remove-author" type="button" aria-label="${escapeHtml(tr("coauthor.remove", "Xóa"))} ${authorNumber}" data-i18n="coauthor.remove">${escapeHtml(tr("coauthor.remove", "Xóa"))}</button>
+        <div class="field"><label for="co-given-${authorNumber}"><span data-i18n="form.given">${escapeHtml(tr("form.given", "Tên"))}</span> <b>*</b></label><input id="co-given-${authorNumber}" data-field="given" type="text" required></div>
+        <div class="field"><label for="co-family-${authorNumber}"><span data-i18n="form.family">${escapeHtml(tr("form.family", "Họ"))}</span> <b>*</b></label><input id="co-family-${authorNumber}" data-field="family" type="text" required></div>
         <div class="field"><label for="co-orcid-${authorNumber}">ORCID</label><input id="co-orcid-${authorNumber}" data-field="orcid" type="url" placeholder="https://orcid.org/…"></div>
-        <div class="field"><label for="co-email-${authorNumber}">Email</label><input id="co-email-${authorNumber}" data-field="email" type="email"></div>
-        <div class="field span-2"><label for="co-affiliation-${authorNumber}">Cơ quan công tác</label><input id="co-affiliation-${authorNumber}" data-field="affiliation" type="text"></div>`;
+        <div class="field"><label for="co-email-${authorNumber}" data-i18n="form.email">${escapeHtml(tr("form.email", "Email"))}</label><input id="co-email-${authorNumber}" data-field="email" type="email"></div>
+        <div class="field span-2"><label for="co-affiliation-${authorNumber}" data-i18n="form.affiliation">${escapeHtml(tr("form.affiliation", "Cơ quan công tác"))}</label><input id="co-affiliation-${authorNumber}" data-field="affiliation" type="text"></div>`;
       $("#coauthor-list").append(row);
       $(".remove-author", row).addEventListener("click", () => row.remove());
     });
     $("#download-metadata").addEventListener("click", () => {
       const metadata = metadataFromForm(form);
       try {
-        if (!metadata.slug || !metadata.title) throw new Error("Hãy nhập tiêu đề và định danh trước khi tải metadata.");
+        if (!metadata.slug || !metadata.title) throw new Error(tr("error.formMeta"));
         downloadMetadata(metadata);
-        setStatus("Đã tạo metadata.json. Đặt tệp này cùng article.xml hoặc manuscript.docx trong articles/<slug>/.", "success");
+        setStatus(tr("status.metadata"), "success");
       } catch (error) {
         setStatus(error.message, "error");
       }
@@ -322,22 +329,24 @@
       const button = $("#submit-button");
       try {
         validateSubmission(metadata, file);
-        if (!config.directPublishEnabled) throw new Error("Chức năng công bố trực tiếp đã bị tắt trong publication.config.json.");
-        if (!token) throw new Error("Cần fine-grained token để ghi commit vào GitHub.");
+        if (!config.directPublishEnabled) throw new Error(tr("error.disabled"));
+        if (!token) throw new Error(tr("error.token"));
         button.disabled = true;
-        setStatus("Đang xác thực repository và chuẩn bị commit nguyên tử…", "info");
+        setStatus(tr("status.preparing"), "info");
         const exists = await pathExists(config.repository, branch, metadata.slug, token);
-        if (exists && !window.confirm(`Bài '${metadata.slug}' đã tồn tại. Tiếp tục sẽ tạo phiên bản mới và thay tệp trùng tên. Tiếp tục?`)) {
-          setStatus("Đã hủy thao tác; repository chưa thay đổi.", "info");
+        if (exists && !window.confirm(formatMessage("confirm.exists", { slug: metadata.slug }))) {
+          setStatus(tr("status.cancelled"), "info");
           return;
         }
-        setStatus("Đang tải metadata và bản thảo lên GitHub…", "info");
+        setStatus(tr("status.uploading"), "info");
         const commit = await publishAtomic({ metadata, file, token, branch });
         tokenInput.value = "";
         const repoUrl = `https://github.com/${config.repository}`;
-        setStatus(`Đã tạo commit <a href="${repoUrl}/commit/${commit.sha}" target="_blank" rel="noopener">${escapeHtml(commit.sha.slice(0, 7))}</a>. Theo dõi <a href="${repoUrl}/actions" target="_blank" rel="noopener">GitHub Actions</a>; trang bài báo sẽ xuất hiện sau khi pipeline hoàn tất.`, "success", true);
+        const commitLink = `<a href="${repoUrl}/commit/${commit.sha}" target="_blank" rel="noopener">${escapeHtml(commit.sha.slice(0, 7))}</a>`;
+        const actionsLink = `<a href="${repoUrl}/actions" target="_blank" rel="noopener">GitHub Actions</a>`;
+        setStatus(formatMessage("publish.success", { commit: commitLink, actions: actionsLink }), "success", true);
       } catch (error) {
-        setStatus(`${error.message} Không token nào được lưu lại.`, "error");
+        setStatus(`${error.message} ${tr("status.noToken")}`, "error");
       } finally {
         button.disabled = false;
       }
@@ -355,8 +364,18 @@
     });
   }
 
+  function bindLanguage() {
+    const browserLanguage = String(navigator.language || "vi").toLowerCase();
+    const detected = browserLanguage.startsWith("zh") ? "zh" : browserLanguage.startsWith("en") ? "en" : "vi";
+    const selected = localStorage.getItem("libpub-language") || detected;
+    window.LibPubI18n?.apply(selected);
+    $("#ui-language")?.addEventListener("change", (event) => window.LibPubI18n?.apply(event.target.value));
+    document.addEventListener("libpub:language", renderCatalog);
+  }
+
   async function init() {
     bindTheme();
+    bindLanguage();
     bindForm();
     $("#catalog-search")?.addEventListener("input", renderCatalog);
     $("#catalog-language")?.addEventListener("change", renderCatalog);

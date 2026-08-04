@@ -1,0 +1,123 @@
+name: Zenodo DOI Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Article slug"
+        required: true
+        type: string
+      tag:
+        description: "GitHub Release tag"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: libpub-pages
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Resolve DOI and rebuild publication
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install publishing toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc texlive-xetex fonts-dejavu-core
+          python -m pip install -r requirements.txt
+
+      - name: Download GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ".libpub/release-assets/${{ inputs.slug }}"
+          gh release download "${{ inputs.tag }}" --dir ".libpub/release-assets/${{ inputs.slug }}" --clobber
+
+      - name: Resolve or create Zenodo DOI
+        env:
+          ZENODO_ACCESS_TOKEN: ${{ secrets.ZENODO_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          mode="$(jq -r '.zenodo.mode' publication.config.json)"
+          api_url="$(jq -r '.zenodo.apiUrl' publication.config.json)"
+          attempts="$(jq -r '.zenodo.pollAttempts' publication.config.json)"
+          interval="$(jq -r '.zenodo.pollIntervalSeconds' publication.config.json)"
+          if [ "$mode" = "api" ]; then
+            python scripts/zenodo.py deposit \
+              --article "articles/${{ inputs.slug }}" \
+              --repository "$GITHUB_REPOSITORY" \
+              --tag "${{ inputs.tag }}" \
+              --assets ".libpub/release-assets/${{ inputs.slug }}" \
+              --api-url "$api_url" \
+              --output .libpub/zenodo-result.json
+          else
+            python scripts/zenodo.py resolve \
+              --repository "$GITHUB_REPOSITORY" \
+              --tag "${{ inputs.tag }}" \
+              --api-url "$api_url" \
+              --attempts "$attempts" \
+              --interval "$interval" \
+              --output .libpub/zenodo-result.json
+          fi
+
+      - name: Write DOI back to article metadata
+        run: |
+          python scripts/zenodo.py apply \
+            --metadata "articles/${{ inputs.slug }}/metadata.json" \
+            --result .libpub/zenodo-result.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "articles/${{ inputs.slug }}/metadata.json"
+          if [ -f "articles/${{ inputs.slug }}/article.xml" ]; then
+            git add "articles/${{ inputs.slug }}/article.xml"
+          fi
+          git commit -m "doi: sync ${{ inputs.tag }} from Zenodo"
+          git push origin HEAD:main
+
+      - name: Validate and rebuild with DOI
+        run: |
+          python scripts/prepare_sources.py
+          python -m unittest discover -s tests -v
+          python scripts/build.py --output output
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: output/
+
+  deploy:
+    name: Redeploy Pages with DOI
+    needs: sync
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy publication site
+        id: deployment
+        uses: actions/deploy-pages@v4

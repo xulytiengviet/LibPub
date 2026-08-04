@@ -7,7 +7,15 @@
   "baseUrl": "https://xulytiengviet.github.io/LibPub",
   "contactEmail": "",
   "defaultLicense": "CC-BY-4.0",
-  "languages": ["vi", "en"],
-  "directPublishEnabled": true
+  "languages": ["vi", "en", "zh"],
+  "directPublishEnabled": true,
+  "zenodo": {
+    "enabled": true,
+    "autoDoi": true,
+    "mode": "github-release",
+    "apiUrl": "https://zenodo.org",
+    "pollAttempts": 40,
+    "pollIntervalSeconds": 15,
+    "repositorySettingsUrl": "https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub"
+  }
 }
-

@@ -18,7 +18,7 @@
   "status": "preprint",
   "autoDoi": true,
   "version": 1,
-  "doi": "",
+  "doi": "10.5281/zenodo.21783408",
   "publishedDate": "2026-08-04",
   "receivedDate": "2026-08-04",
   "license": {
@@ -32,7 +32,9 @@
       "orcid": "",
       "email": "nhdlong@vnuhcm.edu.vn",
       "corresponding": true,
-      "affiliations": ["aff1"]
+      "affiliations": [
+        "aff1"
+      ]
     }
   ],
   "affiliations": [
@@ -45,5 +47,14 @@
   ],
   "funding": "",
   "conflictOfInterest": "The author declares no competing interests.",
-  "dataAvailability": "The benchmark, schemas, reference workflows, and prototype are planned for public release with persistent identifiers after empirical validation. No new empirical dataset is claimed in this framework manuscript."
+  "dataAvailability": "The benchmark, schemas, reference workflows, and prototype are planned for public release with persistent identifiers after empirical validation. No new empirical dataset is claimed in this framework manuscript.",
+  "zenodo": {
+    "doi": "10.5281/zenodo.21783408",
+    "conceptDoi": "",
+    "recordId": "21783408",
+    "recordUrl": "https://zenodo.org/records/21783408",
+    "source": "github-release",
+    "tag": "v1.0-geoplan-verifiable-geoworkflows-iccies2027",
+    "syncedAt": "2026-08-04T04:13:00Z"
+  }
 }

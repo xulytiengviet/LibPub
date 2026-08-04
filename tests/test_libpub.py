@@ -162,8 +162,9 @@ class SecurityTests(unittest.TestCase):
         publish = (ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
         zenodo = (ROOT / ".github" / "workflows" / "zenodo-sync.yml").read_text(encoding="utf-8")
         dockerfile = (ROOT / "tools" / "xsweet" / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn("lmodern fonts-dejavu-core", publish)
-        self.assertIn("lmodern fonts-dejavu-core", zenodo)
+        required_pdf_fonts = "texlive-fonts-recommended lmodern fonts-dejavu-core"
+        self.assertIn(required_pdf_fonts, publish)
+        self.assertIn(required_pdf_fonts, zenodo)
         self.assertIn("git status --porcelain -- 'articles/*/article.xml'", publish)
         self.assertIn("libz-dev libzip-dev", dockerfile)
 

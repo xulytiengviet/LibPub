@@ -45,6 +45,8 @@ articles/article-slug/
 
 Pull requests run read-only validation. After editorial review, merge into `main`; publication and DOI synchronization then run automatically.
 
+For direct dashboard publishing, use **Create the correct token**, select resource owner `xulytiengviet`, **Only select repositories → LibPub**, and **Contents: Read and write**. Paste it and click **Check token** before publishing. LibPub normalizes pasted `Bearer`/`token` prefixes, quotes and whitespace, then verifies the authenticated user, repository and branch. A `401` now reports an invalid, expired or revoked token separately from missing permissions (`403`).
+
 Minimal metadata:
 
 ```json

@@ -17,6 +17,7 @@
   };
   let config = DEFAULT_CONFIG;
   let articles = Array.isArray(window.LIBPUB_ARTICLES) ? window.LIBPUB_ARTICLES : [];
+  const githubApi = window.LibPubGitHub;
 
   const tr = (key, fallback = "") => window.LibPubI18n?.translate(key, fallback) || fallback;
   const formatMessage = (key, values = {}, fallback = "") => Object.entries(values).reduce(
@@ -191,6 +192,25 @@
     else status.textContent = message;
   }
 
+  function githubErrorMessage(error) {
+    if (!(error instanceof githubApi.GitHubApiError)) return error?.message || tr("error.unknown");
+    const values = { repository: config.repository, detail: error.detail || "", status: error.status };
+    let message;
+    if (error.status === 0) message = tr("error.token");
+    else if (error.status === -1) message = tr("error.githubNetwork");
+    else if (error.status === 401) message = tr("error.github401");
+    else if (error.status === 403) message = tr("error.github403");
+    else if (error.status === 404) message = formatMessage("error.github404", values);
+    else if (error.status === 409) message = tr("error.github409");
+    else if (error.status === 410) message = tr("error.github410");
+    else if (error.status === 422) message = tr("error.github422");
+    else message = formatMessage("error.githubGeneric", values);
+    if (error.acceptedPermissions) {
+      message += ` ${formatMessage("error.githubPermissions", { permissions: error.acceptedPermissions })}`;
+    }
+    return message;
+  }
+
   function arrayBufferToBase64(buffer) {
     const bytes = new Uint8Array(buffer);
     const chunk = 0x8000;
@@ -201,49 +221,30 @@
     return btoa(binary);
   }
 
-  async function github(path, token, options = {}) {
-    const response = await fetch(`https://api.github.com${path}`, {
-      ...options,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-    });
-    if (!response.ok) {
-      let detail = `${response.status} ${response.statusText}`;
-      try { detail = (await response.json()).message || detail; } catch (_) { /* empty */ }
-      throw new Error(`GitHub API: ${detail}`);
-    }
-    if (response.status === 204) return {};
-    return response.json();
-  }
-
   async function pathExists(repository, branch, slug, token) {
     const path = `/repos/${repository}/contents/articles/${encodeURIComponent(slug)}/metadata.json?ref=${encodeURIComponent(branch)}`;
-    const response = await fetch(`https://api.github.com${path}`, {
-      headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28" },
-    });
-    if (response.status === 404) return false;
-    if (!response.ok) throw new Error(`GitHub API: ${response.status} ${response.statusText}`);
-    return true;
+    try {
+      await githubApi.request(path, token);
+      return true;
+    } catch (error) {
+      if (error instanceof githubApi.GitHubApiError && error.status === 404) return false;
+      throw error;
+    }
   }
 
   async function publishAtomic({ metadata, file, token, branch }) {
     const repository = config.repository;
-    const branchRef = await github(`/repos/${repository}/git/ref/heads/${encodeURIComponent(branch)}`, token);
+    const branchRef = await githubApi.request(`/repos/${repository}/git/ref/heads/${encodeURIComponent(branch)}`, token);
     const parentSha = branchRef.object.sha;
-    const parentCommit = await github(`/repos/${repository}/git/commits/${parentSha}`, token);
+    const parentCommit = await githubApi.request(`/repos/${repository}/git/commits/${parentSha}`, token);
     const metadataText = `${JSON.stringify(metadata, null, 2)}\n`;
     const manuscriptBase64 = arrayBufferToBase64(await file.arrayBuffer());
     const [metadataBlob, manuscriptBlob] = await Promise.all([
-      github(`/repos/${repository}/git/blobs`, token, { method: "POST", body: JSON.stringify({ content: metadataText, encoding: "utf-8" }) }),
-      github(`/repos/${repository}/git/blobs`, token, { method: "POST", body: JSON.stringify({ content: manuscriptBase64, encoding: "base64" }) }),
+      githubApi.request(`/repos/${repository}/git/blobs`, token, { method: "POST", body: JSON.stringify({ content: metadataText, encoding: "utf-8" }) }),
+      githubApi.request(`/repos/${repository}/git/blobs`, token, { method: "POST", body: JSON.stringify({ content: manuscriptBase64, encoding: "base64" }) }),
     ]);
     const filename = file.name.toLowerCase().endsWith(".xml") ? "article.xml" : "manuscript.docx";
-    const tree = await github(`/repos/${repository}/git/trees`, token, {
+    const tree = await githubApi.request(`/repos/${repository}/git/trees`, token, {
       method: "POST",
       body: JSON.stringify({
         base_tree: parentCommit.tree.sha,
@@ -253,7 +254,7 @@
         ],
       }),
     });
-    const commit = await github(`/repos/${repository}/git/commits`, token, {
+    const commit = await githubApi.request(`/repos/${repository}/git/commits`, token, {
       method: "POST",
       body: JSON.stringify({
         message: `publish: ${metadata.slug} v${metadata.version}`,
@@ -261,7 +262,7 @@
         parents: [parentSha],
       }),
     });
-    await github(`/repos/${repository}/git/refs/heads/${encodeURIComponent(branch)}`, token, {
+    await githubApi.request(`/repos/${repository}/git/refs/heads/${encodeURIComponent(branch)}`, token, {
       method: "PATCH",
       body: JSON.stringify({ sha: commit.sha, force: false }),
     });
@@ -289,6 +290,9 @@
     $("#abstract").addEventListener("input", (event) => { $("#abstract-count").textContent = String(event.target.value.length); });
     $("#published-date").value = new Date().toISOString().slice(0, 10);
     $("#target-branch").addEventListener("input", (event) => { event.target.dataset.touched = "true"; });
+    $("#github-token").addEventListener("blur", (event) => {
+      event.target.value = githubApi.normalizeToken(event.target.value);
+    });
     $("#manuscript").addEventListener("change", (event) => {
       const file = event.target.files[0];
       $("#file-label").textContent = file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB` : tr("form.file", "Chọn manuscript.docx hoặc article.xml");
@@ -318,20 +322,43 @@
         setStatus(error.message, "error");
       }
     });
+    $("#check-github-token").addEventListener("click", async (event) => {
+      const checkButton = event.currentTarget;
+      const tokenInput = $("#github-token");
+      const token = githubApi.normalizeToken(tokenInput.value);
+      const branch = $("#target-branch").value.trim();
+      tokenInput.value = token;
+      try {
+        if (!token) throw new githubApi.GitHubApiError(0, "TOKEN_REQUIRED");
+        checkButton.disabled = true;
+        setStatus(tr("status.verifyingToken"), "info");
+        const verified = await githubApi.verify({ repository: config.repository, branch, token });
+        if (verified.canPush === false) throw new githubApi.GitHubApiError(403, "NO_PUSH_PERMISSION");
+        setStatus(formatMessage("status.tokenValid", verified), "success");
+      } catch (error) {
+        setStatus(`${githubErrorMessage(error)} ${tr("status.noToken")}`, "error");
+      } finally {
+        checkButton.disabled = false;
+      }
+    });
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const metadata = metadataFromForm(form);
       const file = $("#manuscript").files[0];
       const tokenInput = $("#github-token");
-      const token = tokenInput.value.trim();
+      const token = githubApi.normalizeToken(tokenInput.value);
       const branch = $("#target-branch").value.trim();
       const button = $("#submit-button");
       try {
         validateSubmission(metadata, file);
         if (!config.directPublishEnabled) throw new Error(tr("error.disabled"));
         if (!token) throw new Error(tr("error.token"));
+        tokenInput.value = token;
         button.disabled = true;
+        setStatus(tr("status.verifyingToken"), "info");
+        const verified = await githubApi.verify({ repository: config.repository, branch, token });
+        if (verified.canPush === false) throw new githubApi.GitHubApiError(403, "NO_PUSH_PERMISSION");
         setStatus(tr("status.preparing"), "info");
         const exists = await pathExists(config.repository, branch, metadata.slug, token);
         if (exists && !window.confirm(formatMessage("confirm.exists", { slug: metadata.slug }))) {
@@ -346,7 +373,7 @@
         const actionsLink = `<a href="${repoUrl}/actions" target="_blank" rel="noopener">GitHub Actions</a>`;
         setStatus(formatMessage("publish.success", { commit: commitLink, actions: actionsLink }), "success", true);
       } catch (error) {
-        setStatus(`${error.message} ${tr("status.noToken")}`, "error");
+        setStatus(`${githubErrorMessage(error)} ${tr("status.noToken")}`, "error");
       } finally {
         button.disabled = false;
       }

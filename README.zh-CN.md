@@ -45,6 +45,8 @@ articles/article-slug/
 
 Pull request 只运行只读校验。编辑审核通过后合并至 `main`，系统会自动出版并同步 DOI。
 
+如需通过控制台直接发布，请点击 **创建正确权限的令牌**，资源所有者选择 `xulytiengviet`，选择 **Only select repositories → LibPub**，并授予 **Contents: Read and write**。粘贴后先点击 **检查令牌**。LibPub 会自动清除 `Bearer`/`token` 前缀、引号与空格，并验证用户、仓库和分支；`401` 会明确提示令牌无效、过期或已撤销，`403` 则提示权限不足。
+
 最小元数据示例：
 
 ```json

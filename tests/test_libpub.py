@@ -115,6 +115,16 @@ class SecurityTests(unittest.TestCase):
         self.assertNotIn("github_pat_11", source)
         self.assertNotIn("ghp_", source)
 
+    def test_github_auth_helpers(self) -> None:
+        result = subprocess.run(
+            ["node", str(ROOT / "tests" / "test_github_auth.js")],
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

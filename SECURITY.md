@@ -11,6 +11,8 @@ Dashboard cần fine-grained personal access token khi tác giả chọn **Submi
 
 Chỉ cấp quyền **Contents: Read and write** cho riêng repository `LibPub`, đặt thời hạn ngắn và thu hồi token sau khi dùng. Không sử dụng token có quyền quản trị tổ chức hoặc quyền vượt quá nhu cầu.
 
+Dashboard chuẩn hóa token được dán, xác minh `/user`, repository và branch trước khi tạo blob. Lỗi `401` là token không hợp lệ/hết hạn/bị thu hồi; lỗi `403` mới là thiếu quyền ghi hoặc đang chờ phê duyệt. Không gửi token trong issue, ảnh chụp màn hình hoặc log hỗ trợ.
+
 ## Mô hình tin cậy
 
 LibPub là hệ thống xuất bản do chủ repository kiểm soát, không phải cổng nộp bài công cộng không cần xác thực. Bất kỳ ai có quyền ghi vào nhánh công bố đều có thể thay đổi nội dung được triển khai. Nên bật branch protection và dùng pull request khi có nhiều cộng tác viên.
@@ -18,4 +20,3 @@ LibPub là hệ thống xuất bản do chủ repository kiểm soát, không ph
 ## Báo cáo lỗ hổng
 
 Không công bố token, dữ liệu cá nhân hoặc bản thảo mật trong issue công khai. Hãy dùng kênh báo cáo bảo mật riêng của GitHub repository nếu được bật.
-

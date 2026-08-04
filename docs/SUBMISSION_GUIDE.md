@@ -21,14 +21,27 @@ Không tải lên dữ liệu nhạy cảm, phản biện mật, chữ ký số 
 5. Khai báo tác giả chính, ORCID và cơ quan công tác.
 6. Chọn DOCX hoặc XML, tối đa 25 MB.
 7. Tạo fine-grained personal access token cho riêng repository:
+   - dùng liên kết **Tạo token đúng quyền** ngay dưới ô token;
+   - Resource owner: `xulytiengviet`;
    - Repository access: **Only select repositories → LibPub**;
    - Repository permissions: **Contents → Read and write**;
    - thời hạn: ngắn nhất phù hợp.
-8. Dán token vào ô xác thực và bấm **Submit & Publish**.
+8. Dán token vào ô xác thực, bấm **Kiểm tra token**, sau đó bấm **Submit & Publish**.
 9. Mở liên kết commit và GitHub Actions trong thông báo thành công.
 10. Thu hồi token sau khi không còn sử dụng.
 
 Dashboard tạo blob cho metadata và bản thảo, tạo tree, commit rồi cập nhật branch bằng thao tác fast-forward. Vì hai tệp nằm trong cùng một commit, workflow không quan sát trạng thái dở dang chỉ có metadata hoặc chỉ có bản thảo.
+
+## Khắc phục lỗi xác thực GitHub
+
+| Mã lỗi | Nguyên nhân thường gặp | Cách xử lý |
+|---|---|---|
+| `401 Bad credentials` | Token sai, hết hạn, bị thu hồi; hoặc dán cả tiền tố `Bearer`/`token` | Tạo token mới bằng liên kết trên dashboard. LibPub tự loại bỏ tiền tố, dấu nháy, ký tự ẩn và khoảng trắng khi dán. |
+| `403 Forbidden` | Token thiếu `Contents: Read and write`, đang chờ phê duyệt hoặc tài khoản không có quyền push | Chọn đúng resource owner/repository/quyền; kiểm tra trạng thái token trên GitHub. |
+| `404 Not Found` | Token không được cấp cho `xulytiengviet/LibPub` hoặc tên nhánh sai | Chọn `Only select repositories → LibPub` và kiểm tra nhánh. |
+| `422 Validation failed` | Nhánh được bảo vệ hoặc ref không còn fast-forward | Gửi qua pull request hoặc tải lại trang và thử trên nhánh được phép. |
+
+LibPub xác minh lần lượt tài khoản GitHub, repository và branch trước khi tải tệp. Token chỉ tồn tại trong giá trị ô nhập của tab hiện tại; không ghi vào localStorage, cookie, URL, log hoặc metadata.
 
 ## Cách 2: dùng giao diện GitHub hoặc Git
 

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="assets/styles.css">
   <script>window.LIBPUB_ARTICLES = [];</script>
   <script src="assets/i18n.js" defer></script>
+  <script src="assets/github-auth.js" defer></script>
   <script src="assets/app.js" defer></script>
 </head>
 <body>
@@ -136,7 +137,7 @@
             <input class="visually-hidden" id="manuscript" name="manuscript" type="file" accept=".docx,.xml,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml,text/xml" required>
           </div>
           <div class="field"><label for="target-branch" data-i18n="form.branch">Nhánh công bố</label><input id="target-branch" name="targetBranch" type="text" value="main" required></div>
-          <div class="field"><label for="github-token"><span data-i18n="form.token">Fine-grained token</span> <b>*</b></label><input id="github-token" name="githubToken" type="password" autocomplete="new-password" required placeholder="github_pat_…"><small data-i18n="form.tokenHint">Chỉ cần quyền Contents: read/write cho LibPub.</small></div>
+          <div class="field"><label for="github-token"><span data-i18n="form.token">Fine-grained token</span> <b>*</b></label><input id="github-token" name="githubToken" type="password" autocomplete="new-password" required placeholder="github_pat_…"><small data-i18n="form.tokenHint">Resource owner: xulytiengviet · Only select repositories: LibPub · Contents: Read and write.</small><div class="token-tools"><a id="create-github-token" href="https://github.com/settings/personal-access-tokens/new?name=LibPub+Publisher&amp;description=Publish+DOCX+or+JATS+to+xulytiengviet%2FLibPub&amp;target_name=xulytiengviet&amp;expires_in=30&amp;contents=write" target="_blank" rel="noopener" data-i18n="form.createToken">Tạo token đúng quyền ↗</a><button id="check-github-token" type="button" data-i18n="form.checkToken">Kiểm tra token</button></div></div>
           <label class="checkbox span-2"><input id="doi-confirm" type="checkbox" required><span data-i18n="form.confirm">Tôi xác nhận DOI nhập tay (nếu có) hợp lệ và tôi có quyền công bố bản thảo này.</span></label>
         </fieldset>
 

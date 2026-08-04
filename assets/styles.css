@@ -168,6 +168,11 @@ legend { width: 100%; margin-bottom: 15px; padding-bottom: 9px; border-bottom: 1
 .form-status.success { color: #06624f; background: #ddf7ef; }
 .form-status.error { color: #8e1c13; background: #fee9e7; }
 .token-policy { margin: 17px 0 0; color: var(--muted); font-size: 10px; text-align: right; }
+.token-tools { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 8px; font-size: 11px; }
+.token-tools a, .token-tools button { color: var(--teal-dark); font-weight: 750; text-decoration: none; }
+.token-tools button { padding: 0; border: 0; background: transparent; }
+.token-tools a:hover, .token-tools button:hover { text-decoration: underline; }
+.token-tools button:disabled { cursor: wait; opacity: .55; }
 
 .site-footer { min-height: 115px; padding: 26px max(24px, calc((100vw - 1240px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 30px; color: #8fa5b8; background: #061a2d; font-size: 12px; }
 .site-footer > div:not(.brand) { display: flex; gap: 20px; }

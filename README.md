@@ -75,10 +75,12 @@ Hướng dẫn đầy đủ và chế độ REST API tùy chọn: [`docs/ZENODO_
 1. Mở `https://xulytiengviet.github.io/LibPub/#submit`.
 2. Điền tiêu đề, tóm tắt, từ khóa, tác giả, DOI nếu đã được cấp.
 3. Chọn `manuscript.docx` hoặc `article.xml`.
-4. Nhập fine-grained personal access token có quyền **Contents: Read and write** cho riêng repo `LibPub`.
-5. Bấm **Submit & Publish**.
+4. Bấm **Tạo token đúng quyền**, chọn resource owner `xulytiengviet`, **Only select repositories → LibPub** và **Contents: Read and write**.
+5. Dán token, bấm **Kiểm tra token**, rồi bấm **Submit & Publish**.
 
 Dashboard dùng Git Data API để tạo **một commit nguyên tử** gồm `metadata.json` và bản thảo, rồi cập nhật nhánh `main`. Token chỉ nằm trong RAM của tab, không được ghi vào storage, cookie, URL hoặc source code.
+
+Nếu nhận `401 Bad credentials`, token đã sai/hết hạn/bị thu hồi hoặc được dán kèm tiền tố. Phiên bản mới tự làm sạch `Bearer`, `token`, dấu nháy, khoảng trắng và xác minh tài khoản/repository/branch trước khi upload. Xem [bảng khắc phục lỗi GitHub](docs/SUBMISSION_GUIDE.md#khắc-phục-lỗi-xác-thực-github).
 
 > [!CAUTION]
 > Chế độ này dành cho chủ repository hoặc tác giả được ủy quyền. Với cổng nhận bài công cộng, hãy tắt `directPublishEnabled` và dùng pull request/issue hoặc một backend xác thực riêng.

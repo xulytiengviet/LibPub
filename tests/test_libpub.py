@@ -125,6 +125,22 @@ class SecurityTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_uses_current_zenodo_github_settings_url(self) -> None:
+        legacy = "account/settings/github/repository/"
+        config = load_json(ROOT / "publication.config.json")
+        self.assertEqual(
+            config["zenodo"]["repositorySettingsUrl"],
+            "https://zenodo.org/account/settings/github/",
+        )
+        for path in [
+            ROOT / "index.html",
+            ROOT / "README.md",
+            ROOT / "README.en.md",
+            ROOT / "README.zh-CN.md",
+            ROOT / "docs" / "ZENODO_SETUP.md",
+        ]:
+            self.assertNotIn(legacy, path.read_text(encoding="utf-8"), str(path))
+
 
 if __name__ == "__main__":
     unittest.main()

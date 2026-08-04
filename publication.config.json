@@ -16,6 +16,6 @@
     "apiUrl": "https://zenodo.org",
     "pollAttempts": 40,
     "pollIntervalSeconds": 15,
-    "repositorySettingsUrl": "https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub"
+    "repositorySettingsUrl": "https://zenodo.org/account/settings/github/"
   }
 }

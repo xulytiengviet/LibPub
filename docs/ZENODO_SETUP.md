@@ -4,8 +4,8 @@
 
 ### Chế độ khuyến nghị: GitHub Release
 
-1. Đăng nhập Zenodo bằng tài khoản GitHub.
-2. Mở `https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub` và bật repository **xulytiengviet/LibPub**.
+1. Đăng nhập Zenodo và trong menu hồ sơ chọn **Linked accounts** để kết nối tài khoản GitHub nếu chưa kết nối.
+2. Mở `https://zenodo.org/account/settings/github/`, bấm **Sync now**, tìm **xulytiengviet/LibPub** và bật công tắc repository. URL cũ có thêm `/repository/xulytiengviet/LibPub` không còn hợp lệ và trả về 404.
 3. Trong GitHub, đặt **Settings → Actions → General → Workflow permissions** thành **Read and write permissions**.
 4. Đặt **Settings → Pages → Source** thành **GitHub Actions**.
 5. Giữ cấu hình:
@@ -40,7 +40,7 @@ Không đặt token trong `publication.config.json`, dashboard, commit hoặc Pa
 
 ### Recommended mode: GitHub Release
 
-Sign in to Zenodo with GitHub, enable **xulytiengviet/LibPub** on the repository settings page, grant GitHub Actions read/write workflow permission, and select GitHub Actions as the Pages source. Keep `zenodo.mode` as `github-release`; no Zenodo secret is needed.
+Sign in to Zenodo, connect GitHub under **Linked accounts**, open `https://zenodo.org/account/settings/github/`, click **Sync now**, and enable **xulytiengviet/LibPub**. The legacy per-repository URL is no longer valid. Grant GitHub Actions read/write workflow permission and select GitHub Actions as the Pages source. Keep `zenodo.mode` as `github-release`; no Zenodo secret is needed.
 
 For an article with an empty `doi`, `publish.yml` creates `v<version>.0-<slug>` and a GitHub Release. The tagged archive contains article-specific `.zenodo.json` metadata. Zenodo archives it asynchronously; `zenodo-sync.yml` polls the public Records API, writes the DOI/record URL into article metadata and redeploys Pages. If polling times out, rerun **Zenodo DOI Sync** with the existing slug and tag.
 
@@ -50,7 +50,7 @@ For direct upload, create `ZENODO_ACCESS_TOKEN`, set mode to `api`, and disable 
 
 ### 推荐模式：GitHub Release
 
-使用 GitHub 登录 Zenodo，在仓库设置页启用 **xulytiengviet/LibPub**；同时允许 GitHub Actions 读写仓库，并将 Pages 发布来源设为 GitHub Actions。保持 `zenodo.mode` 为 `github-release`，无需配置 Zenodo secret。
+登录 Zenodo，在 **Linked accounts** 中连接 GitHub，然后打开 `https://zenodo.org/account/settings/github/`，点击 **Sync now** 并启用 **xulytiengviet/LibPub**。旧版单仓库网址已失效。同时允许 GitHub Actions 读写仓库，并将 Pages 发布来源设为 GitHub Actions。保持 `zenodo.mode` 为 `github-release`，无需配置 Zenodo secret。
 
 当 `doi` 为空的论文合并后，`publish.yml` 会创建 `v<version>.0-<slug>` 标签与 GitHub Release。标签归档中包含该论文专用的 `.zenodo.json`。Zenodo 异步归档后，`zenodo-sync.yml` 轮询公开 Records API，把 DOI 和记录网址回写元数据并重新部署 Pages。如果等待超时，可使用相同 slug 和 tag 重新运行 **Zenodo DOI Sync**，无需创建新 Release。
 

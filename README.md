@@ -63,7 +63,7 @@ Vào **Settings → Pages → Build and deployment → Source**, chọn **GitHub
 ### 2. Bật quyền workflow và Zenodo một lần
 
 1. Vào **Settings → Actions → General → Workflow permissions**, chọn **Read and write permissions**.
-2. Mở [thiết lập Zenodo cho LibPub](https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub), kết nối GitHub nếu cần và bật repository.
+2. Mở [Zenodo GitHub Settings](https://zenodo.org/account/settings/github/), bấm **Sync now**, tìm `xulytiengviet/LibPub` và bật công tắc repository. Không dùng URL cũ có thêm `/repository/xulytiengviet/LibPub` vì Zenodo hiện trả về 404.
 3. Giữ `zenodo.mode` là `github-release` trong `publication.config.json`. Chế độ mặc định không cần secret Zenodo.
 
 Hướng dẫn đầy đủ và chế độ REST API tùy chọn: [`docs/ZENODO_SETUP.md`](docs/ZENODO_SETUP.md).

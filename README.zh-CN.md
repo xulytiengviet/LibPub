@@ -28,7 +28,7 @@
 
 1. 在 **Settings → Pages** 中将发布来源设为 **GitHub Actions**。
 2. 在 **Settings → Actions → General** 中为 workflow 选择 **Read and write permissions**。
-3. 打开 [Zenodo 的 LibPub 仓库设置](https://zenodo.org/account/settings/github/repository/xulytiengviet/LibPub)，连接 GitHub 并启用该仓库。
+3. 打开 [Zenodo GitHub 设置](https://zenodo.org/account/settings/github/)，点击 **Sync now**，找到 `xulytiengviet/LibPub` 并启用其开关。请勿使用旧版的单仓库网址，该网址现在会返回 404。
 4. 保持 `zenodo.mode` 为 `github-release`；默认模式无需 Zenodo token。
 
 REST API 直传模式请参阅 [Zenodo 完整设置](docs/ZENODO_SETUP.md)。

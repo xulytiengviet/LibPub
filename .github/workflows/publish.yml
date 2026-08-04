@@ -1,0 +1,127 @@
+name: Publish LibPub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "articles/**"
+      - "assets/**"
+      - "schemas/**"
+      - "scripts/**"
+      - "templates/**"
+      - "tools/xsweet/**"
+      - "index.html"
+      - "publication.config.json"
+      - "requirements.txt"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: libpub-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Validate and build publications
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install publishing toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc texlive-xetex fonts-dejavu-core
+          python -m pip install -r requirements.txt
+
+      - name: Start XSweet when DOCX exists
+        id: xsweet
+        shell: bash
+        run: |
+          if ! find articles -type f -name 'manuscript.docx' -print -quit | grep -q .; then
+            echo "No DOCX manuscript; XSweet is not required."
+            exit 0
+          fi
+          if docker build -t libpub-xsweet:local tools/xsweet \
+            && docker run --rm -d --name libpub-xsweet -p 127.0.0.1:8081:80 libpub-xsweet:local; then
+            for attempt in $(seq 1 30); do
+              if curl --fail --silent http://127.0.0.1:8081/ >/dev/null; then
+                echo "LIBPUB_XSWEET_URL=http://127.0.0.1:8081/" >> "$GITHUB_ENV"
+                echo "XSweet is ready."
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "::warning::XSweet did not become ready; Pandoc fallback will be used."
+          else
+            echo "::warning::XSweet image could not be built; Pandoc fallback will be used."
+          fi
+
+      - name: Convert sources and validate JATS
+        run: python scripts/prepare_sources.py --write-back
+
+      - name: Preserve generated JATS in repository
+        shell: bash
+        run: |
+          if git diff --quiet -- articles; then
+            echo "No generated XML changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'articles/*/article.xml'
+          git commit -m "build: preserve generated JATS XML"
+          if ! git push; then
+            echo "::warning::Could not preserve generated XML (branch protection may require a PR); continuing with the in-run build."
+          fi
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build HTML, PDF and machine-readable indexes
+        run: python scripts/build.py --output dist
+
+      - name: Upload reproducible build
+        uses: actions/upload-artifact@v4
+        with:
+          name: libpub-build-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/
+
+  deploy:
+    name: Deploy GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy publication site
+        id: deployment
+        uses: actions/deploy-pages@v4

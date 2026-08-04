@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "Nếu sử dụng LibPub, vui lòng trích dẫn phần mềm này."
+title: "LibPub: GitHub-native static preprint publisher"
+type: software
+authors:
+  - family-names: "Ngo"
+    given-names: "Long"
+version: 1.0.0
+date-released: 2026-08-04
+license: MIT
+repository-code: "https://github.com/xulytiengviet/LibPub"
+url: "https://xulytiengviet.github.io/LibPub"
+

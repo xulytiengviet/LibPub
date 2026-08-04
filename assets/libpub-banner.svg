@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">LibPub</title>
+  <desc id="desc">GitHub-native static preprint publishing</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071f36"/><stop offset="1" stop-color="#0b4560"/></linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08a88a"/><stop offset="1" stop-color="#34dfbd"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-opacity=".25"/></filter>
+  </defs>
+  <rect width="1200" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="1050" cy="50" r="230" fill="#19b99a" opacity=".08"/>
+  <circle cx="1150" cy="340" r="170" fill="#ffffff" opacity=".025"/>
+  <g transform="translate(88 82)" filter="url(#shadow)">
+    <rect width="190" height="190" rx="46" fill="url(#mark)"/>
+    <path d="M64 43v104h72v-25H91V43z" fill="#fff"/>
+    <path d="M125 39h24v46h-24z" fill="#dffbf5" opacity=".9"/>
+  </g>
+  <text x="330" y="151" fill="#fff" font-family="Georgia,serif" font-size="76" font-weight="700">LibPub</text>
+  <text x="333" y="197" fill="#53ddc1" font-family="Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="3">GITHUB-NATIVE PREPRINT PUBLISHING</text>
+  <text x="333" y="246" fill="#b8ccdb" font-family="Arial,sans-serif" font-size="20">DOCX / JATS XML  →  HTML  ·  PDF  ·  GitHub Pages</text>
+  <g transform="translate(333 276)" fill="none" stroke="#2fd4b3" stroke-width="2">
+    <rect width="123" height="32" rx="16"/><rect x="137" width="135" height="32" rx="16"/><rect x="286" width="120" height="32" rx="16"/>
+  </g>
+  <g fill="#d7f6ef" font-family="Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+    <text x="394" y="297">REPRODUCIBLE</text><text x="537" y="297">VERSIONED</text><text x="679" y="297">SERVERLESS</text>
+  </g>
+</svg>
+

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<article xmlns:xlink="http://www.w3.org/1999/xlink" article-type="methods-article" dtd-version="1.3" xml:lang="vi">
+  <front>
+    <journal-meta>
+      <journal-id journal-id-type="publisher-id">LibPub</journal-id>
+      <journal-title-group><journal-title>LibPub Open Research</journal-title></journal-title-group>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="publisher-id">demo-libpub</article-id>
+      <title-group>
+        <article-title>LibPub: Hạ tầng xuất bản preprint có thể tái lập trên GitHub Pages</article-title>
+        <subtitle>Từ bản thảo JATS XML đến HTML và PDF bằng CI/CD</subtitle>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author" corresp="yes">
+          <name name-style="western"><surname>Ngo</surname><given-names>Long</given-names></name>
+          <xref ref-type="aff" rid="aff1"/>
+        </contrib>
+      </contrib-group>
+      <aff id="aff1">LibPub Open Research, Vĩnh Long, Vietnam</aff>
+      <pub-date pub-type="epub"><day>4</day><month>8</month><year>2026</year></pub-date>
+      <abstract>
+        <p>Bài mẫu trình bày kiến trúc của LibPub, một quy trình xuất bản khoa học tĩnh sử dụng GitHub làm kho nguồn, GitHub Actions làm máy xử lý và GitHub Pages làm lớp phân phối.</p>
+      </abstract>
+      <kwd-group><kwd>GitHub Pages</kwd><kwd>JATS XML</kwd><kwd>preprint</kwd><kwd>CI/CD</kwd></kwd-group>
+      <permissions>
+        <license xlink:href="https://creativecommons.org/licenses/by/4.0/"><license-p>CC BY 4.0</license-p></license>
+      </permissions>
+    </article-meta>
+  </front>
+  <body>
+    <sec id="sec1">
+      <title>1. Bối cảnh</title>
+      <p>Nhóm nghiên cứu nhỏ thường cần một kênh công bố nhanh nhưng không muốn duy trì cơ sở dữ liệu, máy chủ ứng dụng và hệ thống quản trị nội dung phức tạp. GitHub đã cung cấp sẵn quản lý phiên bản, tự động hóa và lưu trữ trang tĩnh; LibPub kết nối ba năng lực này thành một dây chuyền xuất bản tối giản.</p>
+    </sec>
+    <sec id="sec2">
+      <title>2. Kiến trúc</title>
+      <p>Mỗi bài báo nằm trong một thư mục độc lập gồm <monospace>metadata.json</monospace> và một nguồn nội dung. Nguồn nội dung có thể là <monospace>article.xml</monospace> theo JATS hoặc <monospace>manuscript.docx</monospace>. Khi có commit mới, GitHub Actions kiểm tra đầu vào, chuẩn hóa nội dung và tạo ba sản phẩm công bố.</p>
+      <list list-type="bullet">
+        <list-item><p>HTML đáp ứng để đọc trên trình duyệt và lập chỉ mục.</p></list-item>
+        <list-item><p>PDF để tải xuống, lưu trữ và trích dẫn.</p></list-item>
+        <list-item><p>JATS XML làm nguồn máy đọc được và có thể tái sử dụng.</p></list-item>
+      </list>
+    </sec>
+    <sec id="sec3">
+      <title>3. Tính toàn vẹn và giới hạn</title>
+      <p>Lịch sử Git cung cấp dấu vết thay đổi nhưng không thay thế quy trình bình duyệt, đăng ký DOI hoặc lưu trữ dài hạn chuyên dụng. DOI trong metadata phải là định danh đã được một cơ quan đăng ký hợp lệ cấp. Người quản trị repository chịu trách nhiệm xác minh quyền công bố và nội dung khoa học.</p>
+    </sec>
+    <sec id="sec4">
+      <title>4. Kết luận</title>
+      <p>LibPub phù hợp cho preprint, kỷ yếu nhỏ, báo cáo kỹ thuật và kho công trình của nhóm nghiên cứu. Kiến trúc tĩnh làm giảm bề mặt vận hành, trong khi định dạng JATS và quy trình CI/CD giữ khả năng chuyển đổi sang hệ thống xuất bản lớn hơn khi nhu cầu tăng.</p>
+    </sec>
+  </body>
+  <back>
+    <ref-list>
+      <title>Tài liệu tham khảo</title>
+      <ref id="ref1"><mixed-citation>GitHub. GitHub Pages documentation. https://docs.github.com/pages</mixed-citation></ref>
+      <ref id="ref2"><mixed-citation>Libero Publisher. https://github.com/libero/publisher</mixed-citation></ref>
+    </ref-list>
+  </back>
+</article>
+

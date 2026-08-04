@@ -1,0 +1,38 @@
+{
+  "title": "From Natural Language to Verifiable GeoWorkflows: A Typed LLM-Orchestration Framework for Predictive Geodata Science",
+  "upload_type": "publication",
+  "publication_type": "article",
+  "description": "Natural-language interfaces can lower the expertise barrier to geospatial analysis, but direct prompt-to-code systems remain vulnerable to silent errors in coordinate reference systems, units, temporal alignment, data provenance, topology, and model selection. This paper presents GeoPlan, a verifiable framework that treats a large language model (LLM) as a semantic planner and workflow compiler rather than as the numerical authority for geometry or prediction. GeoPlan translates an analyst's request into GeoPlan-IR, a typed directed acyclic graph that explicitly records spatial entities, coordinate systems, units, temporal extents, data lineage, uncertainty, model assumptions, and acceptance constraints. A spatial knowledge graph grounds domain concepts and data catalogs; static and dynamic verifiers check the plan before and after execution; and sandboxed adapters compile approved plans to PostGIS, Python geospatial libraries, or Google Earth Engine. The paper further specifies GeoNL2Workflow, an expert-annotated benchmark covering vector, raster, network, spatiotemporal, predictive, and streaming Internet-of-Things tasks. Evaluation separates semantic fidelity, plan correctness, executability, result agreement, robustness, safety, and resource cost rather than collapsing them into a single code-generation score. Two reproducible case studies are defined: compound-flood susceptibility under SSP2-4.5 conditions using satellite, climate, and ESP32 sensor streams, and land-use change prediction from multitemporal Earth observation data. The prespecified primary success criterion is at least 85% end-to-end valid workflow generation on held-out tasks relative to expert reference workflows; it is a target, not a reported empirical result. The framework's central contribution is a neurosymbolic contract between language and geocomputation that makes LLM-assisted predictive geodata science inspectable, portable, and suitable for human-governed decision support.",
+  "creators": [
+    {
+      "name": "Ngo-Hoang, Dai-Long",
+      "affiliation": "Vietnam National University Ho Chi Minh City – Ben Tre Campus"
+    }
+  ],
+  "keywords": [
+    "GeoAI",
+    "geospatial agents",
+    "large language models",
+    "spatial reasoning",
+    "workflow verification",
+    "predictive geodata science",
+    "edge IoT"
+  ],
+  "publication_date": "2026-08-04",
+  "version": "1",
+  "language": "eng",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/xulytiengviet/LibPub/releases/tag/v1.0-geoplan-verifiable-geoworkflows-iccies2027",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article"
+    },
+    {
+      "identifier": "https://github.com/xulytiengviet/LibPub/tree/v1.0-geoplan-verifiable-geoworkflows-iccies2027/articles/geoplan-verifiable-geoworkflows-iccies2027",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article"
+    }
+  ]
+}

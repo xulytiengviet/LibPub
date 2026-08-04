@@ -1,0 +1,13 @@
+{
+  "name": "LibPub",
+  "tagline": "Máy chủ xuất bản preprint tĩnh trên GitHub",
+  "publisher": "Long Ngo Open Research",
+  "repository": "xulytiengviet/LibPub",
+  "defaultBranch": "main",
+  "baseUrl": "https://xulytiengviet.github.io/LibPub",
+  "contactEmail": "",
+  "defaultLicense": "CC-BY-4.0",
+  "languages": ["vi", "en"],
+  "directPublishEnabled": true
+}
+

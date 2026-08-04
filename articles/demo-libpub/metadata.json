@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0",
+  "slug": "demo-libpub",
+  "title": "LibPub: Hạ tầng xuất bản preprint có thể tái lập trên GitHub Pages",
+  "subtitle": "Từ bản thảo JATS XML đến HTML và PDF bằng CI/CD",
+  "abstract": "Bài mẫu trình bày kiến trúc của LibPub, một quy trình xuất bản khoa học tĩnh sử dụng GitHub làm kho nguồn, GitHub Actions làm máy xử lý và GitHub Pages làm lớp phân phối. Thiết kế ưu tiên khả năng tái lập, lịch sử phiên bản minh bạch và chi phí vận hành thấp cho nhóm nghiên cứu nhỏ.",
+  "keywords": [
+    "GitHub Pages",
+    "JATS XML",
+    "preprint",
+    "xuất bản mở",
+    "CI/CD"
+  ],
+  "language": "vi",
+  "articleType": "methods-article",
+  "status": "preprint",
+  "version": 1,
+  "doi": "",
+  "publishedDate": "2026-08-04",
+  "receivedDate": "2026-08-04",
+  "license": {
+    "id": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "authors": [
+    {
+      "given": "Long",
+      "family": "Ngo",
+      "orcid": "",
+      "email": "",
+      "corresponding": true,
+      "affiliations": ["aff1"]
+    }
+  ],
+  "affiliations": [
+    {
+      "id": "aff1",
+      "name": "LibPub Open Research",
+      "city": "Vĩnh Long",
+      "country": "Vietnam"
+    }
+  ],
+  "funding": "Không có tài trợ bên ngoài.",
+  "conflictOfInterest": "Tác giả tuyên bố không có xung đột lợi ích.",
+  "dataAvailability": "Mã nguồn và dữ liệu cấu hình được lưu trong repository LibPub."
+}
+
